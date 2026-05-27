@@ -1,0 +1,74 @@
+@{
+    ViewData["Title"] = "Home";
+    Layout = "_Layout";
+}
+
+<div class="min-vh-100 d-flex flex-column" style="background: linear-gradient(135deg, #0d6efd 0%, #198754 100%);">
+    <!-- Hero -->
+    <div class="flex-grow-1 d-flex align-items-center justify-content-center text-white text-center px-3" style="padding-top:80px;padding-bottom:80px;">
+        <div>
+            <div class="mb-3">
+                <span class="badge rounded-pill px-3 py-2 mb-3" style="background:rgba(255,255,255,0.2);font-size:.9rem;">
+                    <i class="bi bi-globe2 me-1"></i> SDG 4 — Quality Education
+                </span>
+            </div>
+            <h1 class="display-4 fw-bold mb-3">AdaptLearn PH</h1>
+            <p class="lead mb-2" style="max-width:600px;margin:0 auto 1.5rem;">
+                Adaptive E-Learning System for Public Schools in Rural Communities in the Philippines.
+                Personalized learning paths, real-time analytics, and smart recommendations — all in one platform.
+            </p>
+            <div class="d-flex gap-3 justify-content-center flex-wrap mt-4">
+                <a asp-controller="Account" asp-action="Login" class="btn btn-light btn-lg px-4 fw-semibold">
+                    <i class="bi bi-box-arrow-in-right me-2"></i>Login
+                </a>
+                <a asp-controller="Account" asp-action="Register" class="btn btn-outline-light btn-lg px-4">
+                    <i class="bi bi-person-plus me-2"></i>Register
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Feature Cards -->
+    <div class="container pb-5">
+        <div class="row g-4 justify-content-center">
+            <div class="col-md-3">
+                <div class="card h-100 text-center p-4" style="border-radius:16px;">
+                    <div class="fs-1 text-primary mb-2"><i class="bi bi-person-check"></i></div>
+                    <h5 class="fw-bold">Role-Based Access</h5>
+                    <p class="text-muted small">Separate dashboards for Admin, Teacher, and Student roles.</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card h-100 text-center p-4" style="border-radius:16px;">
+                    <div class="fs-1 text-success mb-2"><i class="bi bi-graph-up-arrow"></i></div>
+                    <h5 class="fw-bold">Learning Analytics</h5>
+                    <p class="text-muted small">Track quiz scores, completion rates, and flag struggling students.</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card h-100 text-center p-4" style="border-radius:16px;">
+                    <div class="fs-1 text-warning mb-2"><i class="bi bi-lightbulb"></i></div>
+                    <h5 class="fw-bold">Adaptive Recommendations</h5>
+                    <p class="text-muted small">Auto-suggest Review or Advanced lessons based on quiz performance.</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card h-100 text-center p-4" style="border-radius:16px;">
+                    <div class="fs-1 text-danger mb-2"><i class="bi bi-journal-bookmark-fill"></i></div>
+                    <h5 class="fw-bold">Full LMS Features</h5>
+                    <p class="text-muted small">Manage modules, quizzes, enrollments, and student progress easily.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- SDG Section -->
+        <div class="card mt-5 text-center p-4" style="border-radius:16px;background:rgba(255,255,255,0.95);">
+            <h4 class="fw-bold text-success"><i class="bi bi-patch-check-fill me-2"></i>Supporting SDG 4 — Quality Education</h4>
+            <p class="text-muted mb-0" style="max-width:700px;margin:0 auto;">
+                This platform is aligned with the United Nations Sustainable Development Goal 4, which aims to ensure inclusive and equitable quality education
+                and promote lifelong learning opportunities for all. AdaptLearn PH specifically targets rural public schools in the Philippines, bridging the digital
+                divide and providing teachers with powerful tools to identify and support every learner.
+            </p>
+        </div>
+    </div>
+</div>

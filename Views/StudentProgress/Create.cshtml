@@ -1,0 +1,60 @@
+@model AdaptiveLearningSystem.Models.StudentProgress
+@{
+    ViewData["Title"] = "Record Progress";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="fw-bold mb-0"><i class="bi bi-plus-circle me-2 text-primary"></i>Record Quiz Progress</h4>
+    <a asp-action="Index" asp-controller="Dashboard" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left me-1"></i>Dashboard</a>
+</div>
+
+<div class="card" style="max-width:520px;">
+    <div class="card-body">
+        <form asp-action="Create" method="post">
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small"></div>
+
+            @if (User.IsInRole("Admin") || User.IsInRole("Teacher"))
+            {
+                <div class="mb-3">
+                    <label asp-for="UserId" class="form-label fw-semibold">Student ID</label>
+                    <input asp-for="UserId" class="form-control" placeholder="Paste student user ID" />
+                    <span asp-validation-for="UserId" class="text-danger small"></span>
+                    <small class="text-muted">You can find the student ID from the Students list.</small>
+                </div>
+            }
+
+            <div class="mb-3">
+                <label asp-for="ModuleId" class="form-label fw-semibold">Module</label>
+                <select asp-for="ModuleId" class="form-select" asp-items="ViewBag.Modules">
+                    <option value="">-- Select Module --</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label asp-for="QuizId" class="form-label fw-semibold">Quiz</label>
+                <select asp-for="QuizId" class="form-select" asp-items="ViewBag.Quizzes">
+                    <option value="">-- Select Quiz --</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label asp-for="QuizScore" class="form-label fw-semibold">Quiz Score (0–100)</label>
+                <input asp-for="QuizScore" class="form-control" type="number" min="0" max="100" step="0.5" />
+                <span asp-validation-for="QuizScore" class="text-danger small"></span>
+                <small class="text-muted">Scores below 75 will trigger "Review Basic Lesson" recommendation.</small>
+            </div>
+            <div class="mb-4">
+                <label asp-for="CompletionStatus" class="form-label fw-semibold">Status</label>
+                <select asp-for="CompletionStatus" class="form-select">
+                    <option value="In Progress">In Progress</option>
+                    <option value="Completed">Completed</option>
+                </select>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary fw-semibold">
+                    <i class="bi bi-save me-1"></i>Save Record
+                </button>
+                <a asp-action="Index" asp-controller="Dashboard" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
