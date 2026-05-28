@@ -7,22 +7,31 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
     <style>
+        body { background-color: #f8f9fa; }
+        .navbar-brand { font-weight: 700; font-size: 1.3rem; }
+        .sidebar { min-height: calc(100vh - 56px); background: #fff; border-right: 1px solid #dee2e6; padding-top: 1rem; }
+        .sidebar .nav-link { color: #495057; border-radius: 8px; margin-bottom: 2px; padding: 8px 16px; }
+        .sidebar .nav-link i { width: 20px; }
+        .sidebar .nav-link:hover, .sidebar .nav-link.active { background-color: #e7f1ff; color: #0d6efd; }
+        .main-content { padding: 2rem; }
+        .card { border: none; box-shadow: 0 2px 8px rgba(0,0,0,.08); border-radius: 12px; }
+        .card-stat h2 { font-size: 2.5rem; font-weight: 700; }
+        .table th { font-weight: 600; font-size: 0.85rem; text-transform: uppercase; letter-spacing: .05em; }
+        .alert-temp { position: fixed; top: 70px; right: 20px; z-index: 9999; min-width: 280px; }
+        .sdg-badge { background: linear-gradient(135deg, #198754, #0d6efd); color: white; border-radius: 8px; padding: 4px 10px; font-size: 0.78rem; }
+
+        /* Navbar transparent for landing page */
         .navbar-home {
-            background: rgba(7, 22, 44, 0.6) !important;
-            backdrop-filter: blur(12px);
-            border-bottom: 1px solid rgba(255,255,255,0.08);
-            position: fixed !important;
+            background: transparent !important;
+            backdrop-filter: blur(8px);
+            position: absolute !important;
             width: 100%;
-            top: 0;
+            top: 0; left: 0;
             z-index: 999;
         }
         .navbar-home .navbar-brand,
         .navbar-home .nav-link,
         .navbar-home .text-white-50 {
-            color: #fff !important;
-        }
-        .navbar-home .btn-outline-light {
-            border-color: rgba(255,255,255,0.4) !important;
             color: #fff !important;
         }
     </style>
@@ -51,15 +60,7 @@
                             </form>
                         </li>
                     }
-                    else
-                    {
-                        <li class="nav-item">
-                            <a class="nav-link text-white" asp-controller="Account" asp-action="Login">Login</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="btn btn-sm btn-light ms-2" asp-controller="Account" asp-action="Register">Register</a>
-                        </li>
-                    }
+                    @* Login/Register buttons removed — available on landing page hero *@
                 </ul>
             </div>
         </div>
@@ -105,7 +106,7 @@
                         }
                     </nav>
                 </div>
-                <!-- Main -->
+                <!-- Main Content -->
                 <div class="col-md-10 main-content">
                     @if (TempData["Success"] != null)
                     {
@@ -130,7 +131,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validation-unobtrusive/4.0.0/jquery.validate.unobtrusive.min.js"></script>
     @await RenderSectionAsync("Scripts", required: false)
     <script>
-        // Auto-dismiss alerts after 4 seconds
         setTimeout(function () {
             document.querySelectorAll('.alert-temp').forEach(el => {
                 var alert = new bootstrap.Alert(el);
