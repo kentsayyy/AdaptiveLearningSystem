@@ -3,72 +3,762 @@
     Layout = "_Layout";
 }
 
-<div class="min-vh-100 d-flex flex-column" style="background: linear-gradient(135deg, #0d6efd 0%, #198754 100%);">
-    <!-- Hero -->
-    <div class="flex-grow-1 d-flex align-items-center justify-content-center text-white text-center px-3" style="padding-top:80px;padding-bottom:80px;">
-        <div>
-            <div class="mb-3">
-                <span class="badge rounded-pill px-3 py-2 mb-3" style="background:rgba(255,255,255,0.2);font-size:.9rem;">
-                    <i class="bi bi-globe2 me-1"></i> SDG 4 — Quality Education
-                </span>
+<style>
+    @@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&display=swap');
+
+    :root {
+        --al-blue:       #0B4FD8;
+        --al-blue-dark:  #082F8A;
+        --al-teal:       #0D9E6E;
+        --al-teal-dark:  #076B4A;
+        --al-gold:       #F5A623;
+        --al-gold-light: #FFC85C;
+        --al-surface:    rgba(255,255,255,0.07);
+        --al-border:     rgba(255,255,255,0.15);
+        --al-text-dim:   rgba(255,255,255,0.72);
+    }
+
+    /* ── Base resets for this page ────────────────────────────── */
+    .al-page {
+        font-family: 'DM Sans', sans-serif;
+        background: #07162C;
+        overflow-x: hidden;
+    }
+
+    /* ── HERO ─────────────────────────────────────────────────── */
+    .al-hero {
+        position: relative;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 120px 24px 80px;
+        text-align: center;
+        overflow: hidden;
+    }
+
+    /* Layered mesh gradient */
+    .al-hero::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background:
+            radial-gradient(ellipse 80% 60% at 20% 10%,  #1a5ce6 0%, transparent 60%),
+            radial-gradient(ellipse 60% 50% at 80% 80%,  #0d9e6e 0%, transparent 55%),
+            radial-gradient(ellipse 50% 70% at 60% 20%,  #082F8A 0%, transparent 50%),
+            linear-gradient(160deg, #07162C 0%, #0b2a5c 50%, #07162C 100%);
+        z-index: 0;
+    }
+
+    /* Floating orbs */
+    .al-orb {
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(72px);
+        opacity: 0.35;
+        pointer-events: none;
+        z-index: 0;
+        animation: al-drift 12s ease-in-out infinite alternate;
+    }
+    .al-orb-1 { width: 420px; height: 420px; background: #1a5ce6; top: -80px;  left: -80px;  animation-delay: 0s; }
+    .al-orb-2 { width: 300px; height: 300px; background: #0d9e6e; bottom: 40px; right: -60px; animation-delay: -4s; }
+    .al-orb-3 { width: 200px; height: 200px; background: #F5A623; top: 40%;    left: 55%;   animation-delay: -8s; opacity: 0.18; }
+
+    @@keyframes al-drift {
+        from { transform: translateY(0px) scale(1); }
+        to   { transform: translateY(30px) scale(1.08); }
+    }
+
+    /* Subtle grid overlay */
+    .al-grid-overlay {
+        position: absolute;
+        inset: 0;
+        background-image:
+            linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+        background-size: 48px 48px;
+        z-index: 0;
+    }
+
+    .al-hero-content { position: relative; z-index: 2; max-width: 780px; margin: 0 auto; }
+
+    /* SDG pill */
+    .al-sdg-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(245,166,35,0.15);
+        border: 1px solid rgba(245,166,35,0.4);
+        color: #FFC85C;
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        font-size: 0.78rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        padding: 7px 18px;
+        border-radius: 100px;
+        margin-bottom: 28px;
+        animation: al-fadedown 0.6s ease both;
+    }
+    .al-sdg-pill .al-dot {
+        width: 7px; height: 7px; border-radius: 50%;
+        background: var(--al-gold);
+        box-shadow: 0 0 8px var(--al-gold);
+        animation: al-pulse 2s infinite;
+    }
+    @@keyframes al-pulse {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50%       { opacity: 0.5; transform: scale(1.4); }
+    }
+
+    /* Hero heading */
+    .al-hero-title {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        font-size: clamp(2.8rem, 7vw, 5rem);
+        font-weight: 800;
+        line-height: 1.1;
+        color: #fff;
+        letter-spacing: -0.02em;
+        margin-bottom: 22px;
+        animation: al-fadedown 0.7s 0.1s ease both;
+    }
+    .al-hero-title span {
+        background: linear-gradient(90deg, #62B8FF 0%, #4FE8A6 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .al-hero-sub {
+        font-size: clamp(1rem, 2.2vw, 1.18rem);
+        color: var(--al-text-dim);
+        line-height: 1.75;
+        max-width: 620px;
+        margin: 0 auto 40px;
+        font-weight: 300;
+        animation: al-fadedown 0.7s 0.2s ease both;
+    }
+
+    /* CTA buttons */
+    .al-cta-group {
+        display: flex;
+        gap: 14px;
+        justify-content: center;
+        flex-wrap: wrap;
+        animation: al-fadedown 0.7s 0.3s ease both;
+    }
+    .al-btn-primary {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        font-weight: 700;
+        font-size: 0.95rem;
+        padding: 14px 32px;
+        border-radius: 12px;
+        background: #fff;
+        color: var(--al-blue-dark);
+        border: none;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        transition: transform 0.2s, box-shadow 0.2s;
+        box-shadow: 0 4px 24px rgba(255,255,255,0.18);
+    }
+    .al-btn-primary:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 36px rgba(255,255,255,0.28);
+        color: var(--al-blue-dark);
+    }
+    .al-btn-outline {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        font-weight: 600;
+        font-size: 0.95rem;
+        padding: 13px 30px;
+        border-radius: 12px;
+        background: transparent;
+        color: #fff;
+        border: 1.5px solid var(--al-border);
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        transition: transform 0.2s, background 0.2s, border-color 0.2s;
+        backdrop-filter: blur(6px);
+    }
+    .al-btn-outline:hover {
+        transform: translateY(-3px);
+        background: rgba(255,255,255,0.1);
+        border-color: rgba(255,255,255,0.4);
+        color: #fff;
+    }
+
+    /* Stats strip */
+    .al-stats-strip {
+        display: flex;
+        justify-content: center;
+        gap: 40px;
+        flex-wrap: wrap;
+        margin-top: 60px;
+        animation: al-fadedown 0.7s 0.45s ease both;
+    }
+    .al-stat {
+        text-align: center;
+    }
+    .al-stat-num {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        font-size: 1.6rem;
+        font-weight: 800;
+        color: #fff;
+    }
+    .al-stat-label {
+        font-size: 0.78rem;
+        color: var(--al-text-dim);
+        text-transform: uppercase;
+        letter-spacing: 0.07em;
+        margin-top: 2px;
+    }
+    .al-stat-divider {
+        width: 1px;
+        height: 40px;
+        background: var(--al-border);
+        align-self: center;
+    }
+
+    /* Scroll indicator */
+    .al-scroll-hint {
+        position: absolute;
+        bottom: 32px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 2;
+        color: var(--al-text-dim);
+        font-size: 0.78rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        animation: al-fadedown 1s 0.8s ease both;
+    }
+    .al-scroll-arrow {
+        width: 24px; height: 24px;
+        border-right: 2px solid var(--al-text-dim);
+        border-bottom: 2px solid var(--al-text-dim);
+        transform: rotate(45deg);
+        animation: al-bounce 2s infinite;
+    }
+    @@keyframes al-bounce {
+        0%, 100% { transform: rotate(45deg) translateY(0); }
+        50%       { transform: rotate(45deg) translateY(6px); }
+    }
+
+    /* ── FEATURES SECTION ─────────────────────────────────────── */
+    .al-features {
+        background: #07162C;
+        padding: 100px 0 80px;
+        position: relative;
+    }
+    .al-features::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+    }
+
+    .al-section-label {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        color: #4FE8A6;
+        text-align: center;
+        margin-bottom: 14px;
+    }
+    .al-section-title {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        font-size: clamp(1.7rem, 4vw, 2.4rem);
+        font-weight: 800;
+        color: #fff;
+        text-align: center;
+        letter-spacing: -0.02em;
+        margin-bottom: 12px;
+    }
+    .al-section-sub {
+        text-align: center;
+        color: var(--al-text-dim);
+        font-size: 1rem;
+        max-width: 520px;
+        margin: 0 auto 60px;
+        line-height: 1.7;
+    }
+
+    /* Feature card */
+    .al-card {
+        background: rgba(255,255,255,0.04);
+        border: 1px solid rgba(255,255,255,0.09);
+        border-radius: 20px;
+        padding: 40px 32px;
+        height: 100%;
+        position: relative;
+        overflow: hidden;
+        transition: transform 0.3s cubic-bezier(.2,.8,.3,1), box-shadow 0.3s, border-color 0.3s, background 0.3s;
+        cursor: default;
+    }
+    .al-card::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 3px;
+        border-radius: 20px 20px 0 0;
+        background: var(--card-accent, linear-gradient(90deg, var(--al-blue), #62B8FF));
+        transform: scaleX(0);
+        transform-origin: left;
+        transition: transform 0.35s cubic-bezier(.2,.8,.3,1);
+    }
+    .al-card:hover {
+        transform: translateY(-10px);
+        border-color: rgba(255,255,255,0.2);
+        background: rgba(255,255,255,0.07);
+        box-shadow: 0 24px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.1);
+    }
+    .al-card:hover::before {
+        transform: scaleX(1);
+    }
+
+    .al-card-icon {
+        width: 58px; height: 58px;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.6rem;
+        margin-bottom: 24px;
+        position: relative;
+        transition: transform 0.3s;
+    }
+    .al-card:hover .al-card-icon {
+        transform: scale(1.12) rotate(-4deg);
+    }
+
+    .al-card-title {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: #fff;
+        margin-bottom: 10px;
+    }
+    .al-card-desc {
+        font-size: 0.9rem;
+        color: var(--al-text-dim);
+        line-height: 1.7;
+        margin: 0;
+    }
+    .al-card-arrow {
+        position: absolute;
+        bottom: 24px; right: 28px;
+        color: rgba(255,255,255,0.2);
+        font-size: 1rem;
+        transition: color 0.3s, transform 0.3s;
+    }
+    .al-card:hover .al-card-arrow {
+        color: rgba(255,255,255,0.6);
+        transform: translate(3px, -3px);
+    }
+
+    /* Card accent colors */
+    .al-card-blue  { --card-accent: linear-gradient(90deg, #1a5ce6, #62B8FF); }
+    .al-card-green { --card-accent: linear-gradient(90deg, #0d9e6e, #4FE8A6); }
+    .al-card-gold  { --card-accent: linear-gradient(90deg, #d4880a, #F5A623); }
+    .al-card-red   { --card-accent: linear-gradient(90deg, #c0392b, #e74c3c); }
+
+    .al-icon-blue  { background: rgba(26,92,230,0.2);  color: #62B8FF; }
+    .al-icon-green { background: rgba(13,158,110,0.2); color: #4FE8A6; }
+    .al-icon-gold  { background: rgba(245,166,35,0.2); color: #F5A623; }
+    .al-icon-red   { background: rgba(192,57,43,0.2);  color: #e74c3c; }
+
+    /* ── SDG SECTION ──────────────────────────────────────────── */
+    .al-sdg-section {
+        background: #07162C;
+        padding: 0 0 100px;
+    }
+
+    .al-sdg-card {
+        position: relative;
+        border-radius: 24px;
+        overflow: hidden;
+        padding: 64px 56px;
+        background: linear-gradient(135deg, #0a1f4e 0%, #062a1c 100%);
+        border: 1px solid rgba(79,232,166,0.2);
+    }
+    .al-sdg-card::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background:
+            radial-gradient(ellipse 60% 80% at 90% 50%, rgba(13,158,110,0.15), transparent),
+            radial-gradient(ellipse 50% 60% at 5% 100%,  rgba(26,92,230,0.12), transparent);
+        pointer-events: none;
+    }
+    /* Decorative number */
+    .al-sdg-bg-num {
+        position: absolute;
+        right: -20px;
+        top: -20px;
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        font-size: 240px;
+        font-weight: 900;
+        line-height: 1;
+        color: rgba(79,232,166,0.04);
+        pointer-events: none;
+        user-select: none;
+        letter-spacing: -0.05em;
+    }
+
+    .al-sdg-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(79,232,166,0.12);
+        border: 1px solid rgba(79,232,166,0.3);
+        color: #4FE8A6;
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 6px 16px;
+        border-radius: 100px;
+        margin-bottom: 22px;
+    }
+
+    .al-sdg-title {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        font-size: clamp(1.5rem, 3.5vw, 2.2rem);
+        font-weight: 800;
+        color: #fff;
+        letter-spacing: -0.02em;
+        line-height: 1.2;
+        margin-bottom: 20px;
+    }
+    .al-sdg-title span { color: #4FE8A6; }
+
+    .al-sdg-text {
+        color: var(--al-text-dim);
+        font-size: 0.97rem;
+        line-height: 1.8;
+        max-width: 580px;
+        margin-bottom: 36px;
+    }
+
+    .al-sdg-goals {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+    }
+    .al-sdg-goal-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+    }
+    .al-sdg-goal-dot {
+        width: 20px; height: 20px;
+        min-width: 20px;
+        border-radius: 50%;
+        background: rgba(79,232,166,0.15);
+        border: 1.5px solid rgba(79,232,166,0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-top: 2px;
+    }
+    .al-sdg-goal-dot i {
+        font-size: 0.55rem;
+        color: #4FE8A6;
+    }
+    .al-sdg-goal-text {
+        font-size: 0.9rem;
+        color: rgba(255,255,255,0.75);
+        line-height: 1.55;
+    }
+
+    .al-sdg-visual {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        z-index: 1;
+    }
+    .al-sdg-circle {
+        width: 220px; height: 220px;
+        border-radius: 50%;
+        border: 2px solid rgba(79,232,166,0.25);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        position: relative;
+        animation: al-rotate-ring 20s linear infinite;
+    }
+    .al-sdg-circle::before {
+        content: '';
+        position: absolute;
+        inset: -16px;
+        border-radius: 50%;
+        border: 1px dashed rgba(79,232,166,0.15);
+        animation: al-rotate-ring 15s linear infinite reverse;
+    }
+    @@keyframes al-rotate-ring {
+        from { transform: rotate(0deg); }
+        to   { transform: rotate(360deg); }
+    }
+    .al-sdg-inner {
+        animation: al-rotate-ring 20s linear infinite reverse; /* counter-rotate content so it stays upright */
+    }
+    .al-sdg-num-big {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        font-size: 4rem;
+        font-weight: 900;
+        color: #4FE8A6;
+        line-height: 1;
+        text-shadow: 0 0 40px rgba(79,232,166,0.5);
+    }
+    .al-sdg-num-label {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        font-size: 0.65rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: rgba(255,255,255,0.5);
+        text-align: center;
+    }
+
+    /* ── FOOTER STRIP ─────────────────────────────────────────── */
+    .al-footer-strip {
+        background: rgba(255,255,255,0.03);
+        border-top: 1px solid rgba(255,255,255,0.07);
+        padding: 24px;
+        text-align: center;
+        color: rgba(255,255,255,0.35);
+        font-size: 0.8rem;
+    }
+
+    /* ── ANIMATIONS ───────────────────────────────────────────── */
+    @@keyframes al-fadedown {
+        from { opacity: 0; transform: translateY(-18px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .al-animate {
+        opacity: 0;
+        transform: translateY(32px);
+        transition: opacity 0.65s ease, transform 0.65s ease;
+    }
+    .al-animate.al-visible {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    .al-delay-1 { transition-delay: 0.08s; }
+    .al-delay-2 { transition-delay: 0.18s; }
+    .al-delay-3 { transition-delay: 0.28s; }
+    .al-delay-4 { transition-delay: 0.38s; }
+
+    /* ── RESPONSIVE ───────────────────────────────────────────── */
+    @@media (max-width: 768px) {
+        .al-stats-strip { gap: 20px; }
+        .al-stat-divider { display: none; }
+        .al-sdg-card { padding: 40px 28px; }
+        .al-sdg-visual { margin-top: 48px; }
+        .al-sdg-bg-num { font-size: 130px; }
+    }
+</style>
+
+<div class="al-page">
+
+    <!-- ══ HERO ══════════════════════════════════════════════════ -->
+    <section class="al-hero">
+        <div class="al-orb al-orb-1"></div>
+        <div class="al-orb al-orb-2"></div>
+        <div class="al-orb al-orb-3"></div>
+        <div class="al-grid-overlay"></div>
+
+        <div class="al-hero-content">
+            <div class="al-sdg-pill">
+                <span class="al-dot"></span>
+                SDG 4 &mdash; Quality Education
             </div>
-            <h1 class="display-4 fw-bold mb-3">AdaptLearn PH</h1>
-            <p class="lead mb-2" style="max-width:600px;margin:0 auto 1.5rem;">
-                Adaptive E-Learning System for Public Schools in Rural Communities in the Philippines.
-                Personalized learning paths, real-time analytics, and smart recommendations — all in one platform.
+
+            <h1 class="al-hero-title">
+                AdaptLearn <span>PH</span>
+            </h1>
+
+            <p class="al-hero-sub">
+                Adaptive E-Learning for Rural Public Schools across the Philippines.
+                Personalized learning paths, real-time analytics, and smart recommendations &mdash; all in one platform.
             </p>
-            <div class="d-flex gap-3 justify-content-center flex-wrap mt-4">
-                <a asp-controller="Account" asp-action="Login" class="btn btn-light btn-lg px-4 fw-semibold">
-                    <i class="bi bi-box-arrow-in-right me-2"></i>Login
+
+            <div class="al-cta-group">
+                <a asp-controller="Account" asp-action="Login" class="al-btn-primary">
+                    <i class="bi bi-box-arrow-in-right"></i> Login
                 </a>
-                <a asp-controller="Account" asp-action="Register" class="btn btn-outline-light btn-lg px-4">
-                    <i class="bi bi-person-plus me-2"></i>Register
+                <a asp-controller="Account" asp-action="Register" class="al-btn-outline">
+                    <i class="bi bi-person-plus"></i> Register
                 </a>
+            </div>
+
+            <div class="al-stats-strip">
+                <div class="al-stat">
+                    <div class="al-stat-num">3</div>
+                    <div class="al-stat-label">User Roles</div>
+                </div>
+                <div class="al-stat-divider"></div>
+                <div class="al-stat">
+                    <div class="al-stat-num">5</div>
+                    <div class="al-stat-label">Core Tables</div>
+                </div>
+                <div class="al-stat-divider"></div>
+                <div class="al-stat">
+                    <div class="al-stat-num">75%</div>
+                    <div class="al-stat-label">Mastery Threshold</div>
+                </div>
+                <div class="al-stat-divider"></div>
+                <div class="al-stat">
+                    <div class="al-stat-num">SDG 4</div>
+                    <div class="al-stat-label">UN Aligned</div>
+                </div>
             </div>
         </div>
+
+        <div class="al-scroll-hint">
+            <span>Explore</span>
+            <div class="al-scroll-arrow"></div>
+        </div>
+    </section>
+
+    <!-- ══ FEATURES ══════════════════════════════════════════════ -->
+    <section class="al-features">
+        <div class="container">
+            <p class="al-section-label al-animate">Platform Features</p>
+            <h2 class="al-section-title al-animate al-delay-1">Everything a school needs,<br>in one adaptive system.</h2>
+            <p class="al-section-sub al-animate al-delay-2">
+                Designed for teachers, students, and administrators in low-bandwidth, rural environments.
+            </p>
+
+            <div class="row g-4">
+                <div class="col-md-6 col-lg-3 al-animate al-delay-1">
+                    <div class="al-card al-card-blue">
+                        <div class="al-card-icon al-icon-blue">
+                            <i class="bi bi-person-badge-fill"></i>
+                        </div>
+                        <h5 class="al-card-title">Role-Based Access</h5>
+                        <p class="al-card-desc">Separate dashboards for Admin, Teacher, and Student roles with granular permissions.</p>
+                        <span class="al-card-arrow"><i class="bi bi-arrow-up-right"></i></span>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-3 al-animate al-delay-2">
+                    <div class="al-card al-card-green">
+                        <div class="al-card-icon al-icon-green">
+                            <i class="bi bi-graph-up-arrow"></i>
+                        </div>
+                        <h5 class="al-card-title">Learning Analytics</h5>
+                        <p class="al-card-desc">Track quiz scores, completion rates, and automatically flag struggling students.</p>
+                        <span class="al-card-arrow"><i class="bi bi-arrow-up-right"></i></span>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-3 al-animate al-delay-3">
+                    <div class="al-card al-card-gold">
+                        <div class="al-card-icon al-icon-gold">
+                            <i class="bi bi-lightbulb-fill"></i>
+                        </div>
+                        <h5 class="al-card-title">Adaptive Recommendations</h5>
+                        <p class="al-card-desc">Auto-suggest Review or Advanced lessons based on quiz performance — scores below 75 review basics, 75&plus; advance.</p>
+                        <span class="al-card-arrow"><i class="bi bi-arrow-up-right"></i></span>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-3 al-animate al-delay-4">
+                    <div class="al-card al-card-red">
+                        <div class="al-card-icon al-icon-red">
+                            <i class="bi bi-journal-bookmark-fill"></i>
+                        </div>
+                        <h5 class="al-card-title">Full LMS Features</h5>
+                        <p class="al-card-desc">Manage modules, quizzes, enrollments, and student progress — all in one place.</p>
+                        <span class="al-card-arrow"><i class="bi bi-arrow-up-right"></i></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ══ SDG SECTION ═══════════════════════════════════════════ -->
+    <section class="al-sdg-section">
+        <div class="container">
+            <div class="al-sdg-card al-animate">
+                <div class="al-sdg-bg-num">4</div>
+
+                <div class="row align-items-center gy-5">
+                    <div class="col-lg-7" style="position:relative;z-index:1;">
+                        <div class="al-sdg-badge">
+                            <i class="bi bi-patch-check-fill"></i>
+                            United Nations SDG 4
+                        </div>
+                        <h3 class="al-sdg-title">
+                            Committed to<br><span>Quality Education</span><br>for Every Filipino Learner
+                        </h3>
+                        <p class="al-sdg-text">
+                            AdaptLearn PH is aligned with the United Nations Sustainable Development Goal 4,
+                            which aims to ensure inclusive, equitable, and quality education for all.
+                            We specifically target rural public schools across the Philippines — bridging the
+                            digital divide one classroom at a time.
+                        </p>
+                        <div class="al-sdg-goals">
+                            <div class="al-sdg-goal-item">
+                                <div class="al-sdg-goal-dot"><i class="bi bi-check-lg"></i></div>
+                                <span class="al-sdg-goal-text">Personalized learning paths for students at every level</span>
+                            </div>
+                            <div class="al-sdg-goal-item">
+                                <div class="al-sdg-goal-dot"><i class="bi bi-check-lg"></i></div>
+                                <span class="al-sdg-goal-text">Empowers teachers with real-time analytics and progress tools</span>
+                            </div>
+                            <div class="al-sdg-goal-item">
+                                <div class="al-sdg-goal-dot"><i class="bi bi-check-lg"></i></div>
+                                <span class="al-sdg-goal-text">Designed for low-bandwidth, rural school environments in the PH</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-5 al-sdg-visual">
+                        <div class="al-sdg-circle">
+                            <div class="al-sdg-inner text-center">
+                                <div class="al-sdg-num-big">4</div>
+                                <div class="al-sdg-num-label">Quality<br>Education</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ══ FOOTER STRIP ══════════════════════════════════════════ -->
+    <div class="al-footer-strip">
+        &copy; @DateTime.Now.Year AdaptLearn PH &mdash; Built for SDG 4 &middot; Rural Public Schools in the Philippines
     </div>
 
-    <!-- Feature Cards -->
-    <div class="container pb-5">
-        <div class="row g-4 justify-content-center">
-            <div class="col-md-3">
-                <div class="card h-100 text-center p-4" style="border-radius:16px;">
-                    <div class="fs-1 text-primary mb-2"><i class="bi bi-person-check"></i></div>
-                    <h5 class="fw-bold">Role-Based Access</h5>
-                    <p class="text-muted small">Separate dashboards for Admin, Teacher, and Student roles.</p>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card h-100 text-center p-4" style="border-radius:16px;">
-                    <div class="fs-1 text-success mb-2"><i class="bi bi-graph-up-arrow"></i></div>
-                    <h5 class="fw-bold">Learning Analytics</h5>
-                    <p class="text-muted small">Track quiz scores, completion rates, and flag struggling students.</p>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card h-100 text-center p-4" style="border-radius:16px;">
-                    <div class="fs-1 text-warning mb-2"><i class="bi bi-lightbulb"></i></div>
-                    <h5 class="fw-bold">Adaptive Recommendations</h5>
-                    <p class="text-muted small">Auto-suggest Review or Advanced lessons based on quiz performance.</p>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card h-100 text-center p-4" style="border-radius:16px;">
-                    <div class="fs-1 text-danger mb-2"><i class="bi bi-journal-bookmark-fill"></i></div>
-                    <h5 class="fw-bold">Full LMS Features</h5>
-                    <p class="text-muted small">Manage modules, quizzes, enrollments, and student progress easily.</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- SDG Section -->
-        <div class="card mt-5 text-center p-4" style="border-radius:16px;background:rgba(255,255,255,0.95);">
-            <h4 class="fw-bold text-success"><i class="bi bi-patch-check-fill me-2"></i>Supporting SDG 4 — Quality Education</h4>
-            <p class="text-muted mb-0" style="max-width:700px;margin:0 auto;">
-                This platform is aligned with the United Nations Sustainable Development Goal 4, which aims to ensure inclusive and equitable quality education
-                and promote lifelong learning opportunities for all. AdaptLearn PH specifically targets rural public schools in the Philippines, bridging the digital
-                divide and providing teachers with powerful tools to identify and support every learner.
-            </p>
-        </div>
-    </div>
 </div>
+
+<script>
+    // Intersection Observer for scroll-triggered animations
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('al-visible');
+            }
+        });
+    }, { threshold: 0.12 });
+
+    document.querySelectorAll('.al-animate').forEach(el => observer.observe(el));
+</script>
+
+<script>
+    document.getElementById('mainNavbar').classList.add('navbar-home');
+    document.getElementById('mainNavbar').classList.remove('bg-primary');
+</script>
