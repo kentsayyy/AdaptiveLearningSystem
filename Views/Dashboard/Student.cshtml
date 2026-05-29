@@ -3,6 +3,52 @@
     ViewData["Title"] = "Dashboard";
 }
 
+@* Single Reminder Modal rendered once *@
+@if (User.IsInRole("Student"))
+{
+    var pending = ViewBag.PendingQuizzes as IEnumerable<AdaptiveLearningSystem.Models.Quiz> ?? Enumerable.Empty<AdaptiveLearningSystem.Models.Quiz>();
+    <div class="modal fade" id="reminderModal" tabindex="-1" aria-labelledby="reminderModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="reminderModalLabel"><i class="bi bi-bell me-2 text-primary"></i>Pending Quizzes</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    @if (!pending.Any())
+                    {
+                        <div class="text-center text-muted py-4">
+                            <i class="bi bi-check2-circle fs-1 text-success"></i>
+                            <p class="mt-2">You're all caught up — no pending quizzes!</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="list-group">
+                            @foreach (var q in pending)
+                            {
+                                <div class="list-group-item d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <div class="fw-semibold">@q.Title</div>
+                                        <div class="small text-muted">Module: @q.Module?.Title</div>
+                                        <div class="small text-muted">Deadline: @q.Deadline.ToString("g")</div>
+                                    </div>
+                                    <div class="text-end">
+                                        <a asp-controller="StudentProgress" asp-action="Create" asp-route-moduleId="@q.ModuleId" asp-route-quizId="@q.QuizId" class="btn btn-sm btn-primary">Take Quiz</a>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
         <h4 class="fw-bold mb-0"><i class="bi bi-book-fill me-2 text-primary"></i>My Modules</h4>
@@ -12,13 +58,23 @@
     @* Google Classroom-like + button (students only) *@
     @if (User.IsInRole("Student"))
     {
-        <div class="dropdown">
-            <button class="btn btn-primary d-flex align-items-center justify-content-center" type="button" id="joinClassBtn" data-bs-toggle="dropdown" aria-expanded="false" style="width:44px;height:44px;border-radius:50%;">
-                <i class="bi bi-plus-lg" style="font-size:1.25rem;color:white;"></i>
+        <div class="d-flex gap-2">
+            <button class="btn btn-outline-primary d-flex align-items-center justify-content-center position-relative" type="button" data-bs-toggle="modal" data-bs-target="#reminderModal" title="Reminders" style="width:44px;height:44px;border-radius:50%;">
+                <i class="bi bi-bell-fill" style="font-size:1.1rem;color:#0d6efd"></i>
+                @if (ViewBag.PendingQuizzes != null && ((IEnumerable<dynamic>)ViewBag.PendingQuizzes).Any())
+                {
+                    <span class="badge-count position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">@(((IEnumerable<dynamic>)ViewBag.PendingQuizzes).Count())</span>
+                }
             </button>
-            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="joinClassBtn">
-                <li><a class="dropdown-item" asp-controller="Enrollments" asp-action="Enroll">Join class</a></li>
-            </ul>
+
+            <div class="dropdown">
+                <button class="btn btn-primary d-flex align-items-center justify-content-center" type="button" id="joinClassBtn" data-bs-toggle="dropdown" aria-expanded="false" style="width:44px;height:44px;border-radius:50%;">
+                    <i class="bi bi-plus-lg" style="font-size:1.25rem;color:white;"></i>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="joinClassBtn">
+                    <li><a class="dropdown-item" asp-controller="Enrollments" asp-action="Enroll">Join class</a></li>
+                </ul>
+            </div>
         </div>
     }
 
@@ -35,6 +91,8 @@
                     {
                         <a asp-controller="LearningModules" asp-action="Details" asp-route-id="@(e.Module.ModuleId)" class="stretched-link" aria-label="Open @e.Module.Title"></a>
                     }
+
+<!-- Reminder Modal is rendered once at the end of the page to avoid duplicates -->
                     <div class="card-header @(e.Module?.Level == "Advanced" ? "bg-danger" : "bg-success") text-white d-flex justify-content-between align-items-center">
                         <span class="fw-semibold text-truncate">@e.Module?.Title</span>
                         <span class="badge bg-white @(e.Module?.Level == "Advanced" ? "text-danger" : "text-success") ms-2">@e.Module?.Level</span>

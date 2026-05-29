@@ -45,11 +45,59 @@ namespace AdaptiveLearningSystem.Controllers
             return RedirectToAction("Index", "Dashboard");
         }
 
+        [HttpPost, ValidateAntiForgeryToken]
+        [Authorize(Roles = "Student")]
+        public async Task<IActionResult> Unenroll(int moduleId)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
+
+            var enrollment = await _db.Enrollments
+                .FirstOrDefaultAsync(e => e.UserId == user.Id && e.ModuleId == moduleId);
+            if (enrollment == null)
+            {
+                TempData["Error"] = "You are not enrolled in that module.";
+                return RedirectToAction("MyModules");
+            }
+
+            _db.Enrollments.Remove(enrollment);
+            try
+            {
+                await _db.SaveChangesAsync();
+                TempData["Success"] = "You have been unenrolled from the module.";
+            }
+            catch (DbUpdateException)
+            {
+                TempData["Error"] = "Unable to unenroll. Please contact the administrator.";
+            }
+
+            return RedirectToAction("MyModules");
+        }
+
         [Authorize(Roles = "Student")]
         public async Task<IActionResult> Enroll()
         {
-            var modules = await _db.LearningModules.ToListAsync();
+            var user = await _userManager.GetUserAsync(User);
+            var modulesQuery = _db.LearningModules.Include(m => m.Teacher).AsQueryable();
+
+            // For students, exclude modules they are already enrolled in
+            if (user != null && await _userManager.IsInRoleAsync(user, "Student"))
+            {
+                var enrolledModuleIds = await _db.Enrollments
+                    .Where(e => e.UserId == user.Id)
+                    .Select(e => e.ModuleId)
+                    .ToListAsync();
+
+                if (enrolledModuleIds.Any())
+                {
+                    modulesQuery = modulesQuery.Where(m => !enrolledModuleIds.Contains(m.ModuleId));
+                }
+            }
+
+            var modules = await modulesQuery.ToListAsync();
+            // Keep the old SelectList for any legacy usage and also pass the full module list for the improved UI
             ViewBag.Modules = new SelectList(modules, "ModuleId", "Title");
+            ViewBag.ModulesList = modules;
             return View();
         }
 

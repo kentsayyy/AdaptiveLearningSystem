@@ -37,7 +37,17 @@ namespace AdaptiveLearningSystem.Controllers
 
         public async Task<IActionResult> Create()
         {
-            ViewBag.Modules = new SelectList(await _db.LearningModules.ToListAsync(), "ModuleId", "Title");
+            var currentUser = await _userManager.GetUserAsync(User);
+            var modulesQuery = _db.LearningModules.AsQueryable();
+            if (currentUser != null && await _userManager.IsInRoleAsync(currentUser, "Teacher"))
+            {
+                // Teachers should only see their own modules
+                modulesQuery = modulesQuery.Where(m => m.TeacherId == currentUser.Id);
+            }
+
+            var modules = await modulesQuery.ToListAsync();
+            ViewBag.Modules = new SelectList(modules, "ModuleId", "Title");
+
             // Prefill a default deadline so the datetime-local input shows a value
             var vm = new Quiz { Deadline = DateTime.Now.AddDays(7) };
             return View(vm);
@@ -52,9 +62,26 @@ namespace AdaptiveLearningSystem.Controllers
                 ModelState.AddModelError("Deadline", "Deadline must be a future date and time.");
             }
 
+            // If teacher, ensure the selected module belongs to them
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser != null && await _userManager.IsInRoleAsync(currentUser, "Teacher"))
+            {
+                var module = await _db.LearningModules.FindAsync(model.ModuleId);
+                if (module == null || module.TeacherId != currentUser.Id)
+                {
+                    ModelState.AddModelError("ModuleId", "Invalid module selection.");
+                }
+            }
+
             if (!ModelState.IsValid)
             {
-                ViewBag.Modules = new SelectList(await _db.LearningModules.ToListAsync(), "ModuleId", "Title");
+                // Re-populate modules list respecting teacher scope
+                var modulesQuery = _db.LearningModules.AsQueryable();
+                if (currentUser != null && await _userManager.IsInRoleAsync(currentUser, "Teacher"))
+                {
+                    modulesQuery = modulesQuery.Where(m => m.TeacherId == currentUser.Id);
+                }
+                ViewBag.Modules = new SelectList(await modulesQuery.ToListAsync(), "ModuleId", "Title");
                 return View(model);
             }
             _db.Quizzes.Add(model);
@@ -67,7 +94,13 @@ namespace AdaptiveLearningSystem.Controllers
         {
             var quiz = await _db.Quizzes.FindAsync(id);
             if (quiz == null) return NotFound();
-            ViewBag.Modules = new SelectList(await _db.LearningModules.ToListAsync(), "ModuleId", "Title", quiz.ModuleId);
+            var currentUser = await _userManager.GetUserAsync(User);
+            var modulesQuery = _db.LearningModules.AsQueryable();
+            if (currentUser != null && await _userManager.IsInRoleAsync(currentUser, "Teacher"))
+            {
+                modulesQuery = modulesQuery.Where(m => m.TeacherId == currentUser.Id);
+            }
+            ViewBag.Modules = new SelectList(await modulesQuery.ToListAsync(), "ModuleId", "Title", quiz.ModuleId);
             return View(quiz);
         }
 
@@ -79,10 +112,25 @@ namespace AdaptiveLearningSystem.Controllers
             {
                 ModelState.AddModelError("Deadline", "Deadline must be a future date and time.");
             }
+            // If teacher, ensure the selected module belongs to them
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser != null && await _userManager.IsInRoleAsync(currentUser, "Teacher"))
+            {
+                var module = await _db.LearningModules.FindAsync(model.ModuleId);
+                if (module == null || module.TeacherId != currentUser.Id)
+                {
+                    ModelState.AddModelError("ModuleId", "Invalid module selection.");
+                }
+            }
 
             if (!ModelState.IsValid)
             {
-                ViewBag.Modules = new SelectList(await _db.LearningModules.ToListAsync(), "ModuleId", "Title", model.ModuleId);
+                var modulesQuery = _db.LearningModules.AsQueryable();
+                if (currentUser != null && await _userManager.IsInRoleAsync(currentUser, "Teacher"))
+                {
+                    modulesQuery = modulesQuery.Where(m => m.TeacherId == currentUser.Id);
+                }
+                ViewBag.Modules = new SelectList(await modulesQuery.ToListAsync(), "ModuleId", "Title", model.ModuleId);
                 return View(model);
             }
             _db.Update(model);
@@ -97,8 +145,24 @@ namespace AdaptiveLearningSystem.Controllers
             var quiz = await _db.Quizzes.FindAsync(id);
             if (quiz != null)
             {
+                // Remove any related student progress entries first to avoid FK constraint errors
+                var progresses = await _db.StudentProgresses.Where(p => p.QuizId == id).ToListAsync();
+                if (progresses.Any())
+                {
+                    _db.StudentProgresses.RemoveRange(progresses);
+                }
+
                 _db.Quizzes.Remove(quiz);
-                await _db.SaveChangesAsync();
+                try
+                {
+                    await _db.SaveChangesAsync();
+                }
+                catch (DbUpdateException ex)
+                {
+                    // Log or surface a user-friendly message
+                    TempData["Error"] = "Unable to delete quiz. Ensure there are no related records and try again.";
+                    return RedirectToAction(nameof(Index));
+                }
             }
             TempData["Success"] = "Quiz deleted.";
             return RedirectToAction(nameof(Index));

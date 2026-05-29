@@ -105,8 +105,38 @@ namespace AdaptiveLearningSystem.Controllers
         public async Task<IActionResult> Delete(string id)
         {
             var student = await _userManager.FindByIdAsync(id);
-            if (student != null) await _userManager.DeleteAsync(student);
-            TempData["Success"] = "Student deleted.";
+            if (student == null)
+            {
+                TempData["Error"] = "Student not found.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            // Remove dependent records that use Restrict delete behavior to avoid FK violations
+            var progresses = await _db.StudentProgresses.Where(p => p.UserId == id).ToListAsync();
+            if (progresses.Any()) _db.StudentProgresses.RemoveRange(progresses);
+
+            var enrollments = await _db.Enrollments.Where(e => e.UserId == id).ToListAsync();
+            if (enrollments.Any()) _db.Enrollments.RemoveRange(enrollments);
+
+            try
+            {
+                // Persist dependent deletes first
+                await _db.SaveChangesAsync();
+
+                var result = await _userManager.DeleteAsync(student);
+                if (!result.Succeeded)
+                {
+                    TempData["Error"] = "Unable to delete student. " + string.Join("; ", result.Errors.Select(e => e.Description));
+                    return RedirectToAction(nameof(Index));
+                }
+
+                TempData["Success"] = "Student deleted.";
+            }
+            catch (DbUpdateException)
+            {
+                TempData["Error"] = "Unable to delete student due to related data. Remove related records and try again.";
+            }
+
             return RedirectToAction(nameof(Index));
         }
     }

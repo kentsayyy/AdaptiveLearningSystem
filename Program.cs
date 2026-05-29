@@ -33,7 +33,13 @@ var app = builder.Build();
 // Seed roles on startup
 using (var scope = app.Services.CreateScope())
 {
-    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+    var services = scope.ServiceProvider;
+    SeedDataAsync(services).GetAwaiter().GetResult();
+}
+
+static async Task SeedDataAsync(IServiceProvider services)
+{
+    var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
     string[] roles = { "Admin", "Teacher", "Student" };
     foreach (var role in roles)
     {
@@ -42,7 +48,7 @@ using (var scope = app.Services.CreateScope())
     }
 
     // Seed default admin user
-    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+    var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
     string adminEmail = "admin@adaptlearn.ph";
     if (await userManager.FindByEmailAsync(adminEmail) == null)
     {

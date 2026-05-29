@@ -34,6 +34,29 @@ namespace AdaptiveLearningSystem.Controllers
                     .Where(e => e.UserId == user.Id)
                     .ToListAsync();
 
+                // Compute pending quizzes for reminder: active quizzes in enrolled modules
+                var moduleIds = enrollments.Select(e => e.Module!.ModuleId).Distinct().ToList();
+                var now = DateTime.Now;
+                var pendingQuizzes = new List<Quiz>();
+                if (moduleIds.Any())
+                {
+                    // quizzes that are active, not past deadline, and the student has not completed yet
+                    pendingQuizzes = await _db.Quizzes
+                        .Include(q => q.Module)
+                        .Where(q => moduleIds.Contains(q.ModuleId) && q.IsActive && q.Deadline >= now)
+                        .ToListAsync();
+
+                    // Exclude quizzes where a StudentProgress exists with CompletionStatus == "Completed"
+                    var completedQuizIds = await _db.StudentProgresses
+                        .Where(p => p.UserId == user.Id && p.CompletionStatus == "Completed")
+                        .Select(p => p.QuizId)
+                        .ToListAsync();
+
+                    pendingQuizzes = pendingQuizzes.Where(q => !completedQuizIds.Contains(q.QuizId)).OrderBy(q => q.Deadline).ToList();
+                }
+
+                ViewBag.PendingQuizzes = pendingQuizzes;
+
                 return View("Student", enrollments);
             }
 
