@@ -54,6 +54,46 @@
             /* Recolour hamburger lines to dark blue */
             background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%2811%2C79%2C216%2C0.85%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
         }
+
+        /* ── IMPROVEMENT 1: Role badge in navbar ─────────────────────── */
+        .role-badge {
+            display: inline-block;
+            font-size: 0.65rem;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            padding: 2px 8px;
+            border-radius: 50px;
+            vertical-align: middle;
+            margin-left: 6px;
+            line-height: 1.5;
+        }
+        .role-badge-admin   { background-color: #dc3545; color: #fff; }
+        .role-badge-teacher { background-color: #0B4FD8; color: #fff; }
+        .role-badge-student { background-color: #0D9E6E; color: #fff; }
+
+        /* ── IMPROVEMENT 2: Sidebar hover animation ──────────────────── */
+        .sidebar .nav-link {
+            transition: all 0.2s ease;
+            border-left: 3px solid transparent;
+        }
+        .sidebar .nav-link:hover {
+            background-color: #e7f1ff;
+            color: #0B4FD8 !important;
+            border-left: 3px solid #0B4FD8;
+            transform: translateX(4px);
+        }
+        .sidebar .nav-link:hover i {
+            color: #0B4FD8;
+        }
+        .sidebar .nav-link.active {
+            background-color: #dbeafe;
+            color: #0B4FD8 !important;
+            font-weight: 700;
+            border-left: 3px solid #0B4FD8;
+        }
+        .sidebar .nav-link.active i {
+            color: #0B4FD8;
+        }
     </style>
 </head>
 <body>
@@ -83,6 +123,18 @@
                         <li class="nav-item">
                             <span class="nav-link text-white-50">
                                 <i class="bi bi-person-circle me-1"></i>@User.Identity.Name
+                                @if (User.IsInRole("Admin"))
+                                {
+                                    <span class="role-badge role-badge-admin">ADMIN</span>
+                                }
+                                else if (User.IsInRole("Teacher"))
+                                {
+                                    <span class="role-badge role-badge-teacher">TEACHER</span>
+                                }
+                                else if (User.IsInRole("Student"))
+                                {
+                                    <span class="role-badge role-badge-student">STUDENT</span>
+                                }
                             </span>
                         </li>
                         <li class="nav-item">

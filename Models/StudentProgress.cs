@@ -14,7 +14,7 @@ namespace AdaptiveLearningSystem.Models
         public int ModuleId { get; set; }
         public int QuizId { get; set; }
 
-        [Range(0, 100)]
+        [Range(0, 10000)]
         [Display(Name = "Quiz Score")]
         public double QuizScore { get; set; }
 
@@ -24,16 +24,17 @@ namespace AdaptiveLearningSystem.Models
         [Display(Name = "Date Completed")]
         public DateTime DateCompleted { get; set; } = DateTime.Now;
 
-        // Adaptive recommendation (computed property)
         [NotMapped]
         public string Recommendation =>
-            QuizScore < 75 ? "Review Basic Lesson" : "Proceed to Advanced Lesson";
+            Quiz != null && Quiz.TotalItems > 0
+                ? ((QuizScore / Quiz.TotalItems) * 100 < 75
+                    ? "Review Basic Lesson"
+                    : "Proceed to Advanced Lesson")
+                : (QuizScore < 75 ? "Review Basic Lesson" : "Proceed to Advanced Lesson");
 
-        // Allow binding of raw correct answers in the form and compute QuizScore server-side
         [NotMapped]
         public int? CorrectAnswers { get; set; }
 
-        // Navigation
         public ApplicationUser? User { get; set; }
         public LearningModule? Module { get; set; }
         public Quiz? Quiz { get; set; }

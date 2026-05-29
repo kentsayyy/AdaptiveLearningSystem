@@ -32,7 +32,6 @@ namespace AdaptiveLearningSystem.Controllers
             var currentUser = await _userManager.GetUserAsync(User);
             if (currentUser != null && await _userManager.IsInRoleAsync(currentUser, "Teacher"))
             {
-                // Teachers see only enrollments for modules they teach
                 query = query.Where(e => e.Module != null && e.Module.TeacherId == currentUser.Id);
             }
 
@@ -40,16 +39,12 @@ namespace AdaptiveLearningSystem.Controllers
             return View(enrollments);
         }
 
-        // Student: view own enrolled modules
         [Authorize(Roles = "Student")]
         public async Task<IActionResult> MyModules()
         {
-            // MyModules dashboard removed — redirect students to main Dashboard which already
-            // displays their enrolled modules. Keep this route for backward compatibility.
             return RedirectToAction("Index", "Dashboard");
         }
 
-        // Allow students to enroll themselves in a module
         [Authorize(Roles = "Student")]
         public async Task<IActionResult> Enroll()
         {
@@ -106,7 +101,7 @@ namespace AdaptiveLearningSystem.Controllers
             return RedirectToAction("Index", "Dashboard");
         }
 
-        [Authorize(Roles = "Admin,Teacher")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Create()
         {
             var students = await _userManager.GetUsersInRoleAsync("Student");
@@ -116,7 +111,8 @@ namespace AdaptiveLearningSystem.Controllers
         }
 
         [HttpPost, ValidateAntiForgeryToken]
-        [Authorize(Roles = "Admin,Teacher")]
+
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Create(Enrollment model)
         {
             var exists = await _db.Enrollments
@@ -137,7 +133,7 @@ namespace AdaptiveLearningSystem.Controllers
         }
 
         [HttpPost, ValidateAntiForgeryToken]
-        [Authorize(Roles = "Admin,Teacher")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(int id)
         {
             var enrollment = await _db.Enrollments.FindAsync(id);

@@ -5,14 +5,12 @@
 
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h4 class="fw-bold mb-0"><i class="bi bi-bar-chart-fill me-2 text-primary"></i>Student Progress Records</h4>
-    @* Only show the Record Progress button to Admins and Teachers. Students record progress from the module details. *@
     @if (User.IsInRole("Admin") || User.IsInRole("Teacher"))
     {
         <a asp-action="Create" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg me-1"></i>Record Progress</a>
     }
 </div>
 
-<!-- Filter Form -->
 <div class="card mb-3">
     <div class="card-body py-2">
         <form method="get" class="d-flex flex-wrap gap-2 align-items-end">
@@ -64,13 +62,22 @@
                     <tbody>
                         @foreach (var p in Model)
                         {
+                            var totalItems = p.Quiz?.TotalItems ?? 0;
+                            var percent = totalItems > 0
+                                ? (p.QuizScore / totalItems) * 100
+                                : p.QuizScore;
+                            var scoreDisplay = totalItems > 0
+                                ? $"{(int)p.QuizScore}/{totalItems}"
+                                : p.QuizScore.ToString();
+                            var isPassing = percent >= 75;
+
                             <tr>
                                 <td>@p.User?.FullName</td>
                                 <td class="text-truncate" style="max-width:130px;">@p.Module?.Title</td>
                                 <td class="text-truncate" style="max-width:120px;">@p.Quiz?.Title</td>
                                 <td>
-                                    <span class="badge @(p.QuizScore >= 75 ? "bg-success" : "bg-danger")">
-                                        @p.QuizScore%
+                                    <span class="badge @(isPassing ? "bg-success" : "bg-danger")">
+                                        @scoreDisplay
                                     </span>
                                 </td>
                                 <td>
@@ -80,7 +87,7 @@
                                 </td>
                                 <td class="small text-muted">@p.DateCompleted.ToShortDateString()</td>
                                 <td>
-                                    <span class="badge @(p.QuizScore >= 75 ? "bg-success" : "bg-warning text-dark") small">
+                                    <span class="badge @(isPassing ? "bg-success" : "bg-warning text-dark") small">
                                         @p.Recommendation
                                     </span>
                                 </td>

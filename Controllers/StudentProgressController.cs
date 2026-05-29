@@ -34,7 +34,6 @@ namespace AdaptiveLearningSystem.Controllers
             var currentUser = await _userManager.GetUserAsync(User);
             if (currentUser != null && await _userManager.IsInRoleAsync(currentUser, "Teacher"))
             {
-                // Teachers see only progress for their modules
                 query = query.Where(p => p.Module != null && p.Module.TeacherId == currentUser.Id);
             }
 
@@ -57,11 +56,10 @@ namespace AdaptiveLearningSystem.Controllers
 
         public async Task<IActionResult> Create(int? moduleId, int? quizId)
         {
-            var currentUser = await _userManager.GetUserAsync(User);
             var currentUserId = _userManager.GetUserId(User);
             ViewBag.SelectedModuleId = moduleId?.ToString() ?? "";
             ViewBag.SelectedQuizId = quizId ?? 0;
-            // If the current user is a student, only show modules they are enrolled in
+
             if (User.IsInRole("Student"))
             {
                 var enrollments = await _db.Enrollments
@@ -69,19 +67,35 @@ namespace AdaptiveLearningSystem.Controllers
                     .Where(e => e.UserId == currentUserId)
                     .ToListAsync();
 
-                var modules = enrollments.Select(e => e.Module!).Where(m => m != null).Distinct().ToList();
+                var modules = enrollments.Select(e => e.Module!)
+                    .Where(m => m != null).Distinct().ToList();
                 ViewBag.Modules = new SelectList(modules, "ModuleId", "Title");
 
                 var moduleIds = modules.Select(m => m!.ModuleId).ToList();
-                var quizzes = await _db.Quizzes.Where(q => moduleIds.Contains(q.ModuleId)).ToListAsync();
+                var quizzes = await _db.Quizzes
+                    .Where(q => moduleIds.Contains(q.ModuleId)).ToListAsync();
                 ViewBag.Quizzes = new SelectList(quizzes, "QuizId", "Title");
                 ViewBag.QuizzesRaw = quizzes;
-
                 ViewBag.UserId = currentUserId;
             }
             else
             {
-                ViewBag.Modules = new SelectList(await _db.LearningModules.ToListAsync(), "ModuleId", "Title");
+                var studentRole = await _db.Roles.FirstOrDefaultAsync(r => r.Name == "Student");
+                List<ApplicationUser> students = new();
+                if (studentRole != null)
+                {
+                    var studentIds = await _db.UserRoles
+                        .Where(ur => ur.RoleId == studentRole.Id)
+                        .Select(ur => ur.UserId)
+                        .ToListAsync();
+                    students = await _db.Users
+                        .Where(u => studentIds.Contains(u.Id))
+                        .OrderBy(u => u.FullName)
+                        .ToListAsync();
+                }
+                ViewBag.Students = new SelectList(students, "Id", "FullName");
+                ViewBag.Modules = new SelectList(
+                    await _db.LearningModules.ToListAsync(), "ModuleId", "Title");
                 var allQuizzes = await _db.Quizzes.ToListAsync();
                 ViewBag.Quizzes = new SelectList(allQuizzes, "QuizId", "Title");
                 ViewBag.QuizzesRaw = allQuizzes;
@@ -94,103 +108,87 @@ namespace AdaptiveLearningSystem.Controllers
         public async Task<IActionResult> Create(StudentProgress model)
         {
             var currentUserId = _userManager.GetUserId(User);
+
+            ModelState.Remove("DateCompleted");
+            ModelState.Remove("User");
+            ModelState.Remove("Module");
+            ModelState.Remove("Quiz");
+
             if (User.IsInRole("Student"))
             {
                 model.UserId = currentUserId ?? string.Empty;
-                // If ModelState previously recorded missing UserId, remove it so server-side validation uses this value
-                if (ModelState.ContainsKey("UserId")) ModelState.Remove("UserId");
-            }
+                ModelState.Remove("UserId");
 
-            // Additional validation for student users: ensure they are enrolled in the selected module
-            if (User.IsInRole("Student"))
-            {
                 var isEnrolled = await _db.Enrollments
                     .AnyAsync(e => e.UserId == currentUserId && e.ModuleId == model.ModuleId);
                 if (!isEnrolled)
-                {
                     ModelState.AddModelError("ModuleId", "You are not enrolled in the selected module.");
-                }
+            }
+            else
+            {
+                if (string.IsNullOrWhiteSpace(model.UserId))
+                    ModelState.AddModelError("UserId", "Please select a student.");
+                else
+                    ModelState.Remove("UserId");
             }
 
-            // Validate quiz belongs to selected module
             if (model.QuizId != 0)
             {
                 var quiz = await _db.Quizzes.FindAsync(model.QuizId);
                 if (quiz == null || quiz.ModuleId != model.ModuleId)
                 {
-                    ModelState.AddModelError("QuizId", "The selected quiz does not belong to the selected module.");
+                    ModelState.AddModelError("QuizId",
+                        "The selected quiz does not belong to the selected module.");
                 }
                 else
                 {
-                    // Determine which input the user provided. Prefer an explicitly provided QuizScore; otherwise use CorrectAnswers
+                    bool correctProvided = model.CorrectAnswers.HasValue;
                     var form = Request?.Form;
-                    var quizScoreProvided = form != null && form.TryGetValue("QuizScore", out var qsVal) && !string.IsNullOrWhiteSpace(qsVal);
-                    var correctProvided = model.CorrectAnswers.HasValue;
+                    bool quizScoreProvided = form != null
+                        && form.TryGetValue("QuizScore", out var qsVal)
+                        && !string.IsNullOrWhiteSpace(qsVal)
+                        && qsVal != "0";
 
-                    if (quizScoreProvided)
+                    if (correctProvided)
                     {
-                        // Validate provided percent
-                        if (model.QuizScore < 0 || model.QuizScore > 100)
+                        if (model.CorrectAnswers!.Value < 0 || model.CorrectAnswers.Value > quiz.TotalItems)
                         {
-                            ModelState.AddModelError("QuizScore", "Quiz score must be between 0 and 100.");
-                        }
-                    }
-                    else if (correctProvided)
-                    {
-                        if (model.CorrectAnswers.Value < 0 || model.CorrectAnswers.Value > quiz.TotalItems)
-                        {
-                            ModelState.AddModelError("CorrectAnswers", $"Correct answers must be between 0 and {quiz.TotalItems}.");
+                            ModelState.AddModelError("CorrectAnswers",
+                                $"Correct answers must be between 0 and {quiz.TotalItems}.");
                         }
                         else
                         {
-                            model.QuizScore = Math.Round(((double)model.CorrectAnswers.Value / Math.Max(1, quiz.TotalItems)) * 100.0, 2);
+                            // Store raw score (e.g. 5), not percent
+                            model.QuizScore = model.CorrectAnswers.Value;
+                            ModelState.Remove("QuizScore");
                         }
+                    }
+                    else if (quizScoreProvided)
+                    {
+                        if (model.QuizScore < 0 || model.QuizScore > quiz.TotalItems)
+                            ModelState.AddModelError("QuizScore",
+                                $"Quiz score must be between 0 and {quiz.TotalItems}.");
                     }
                     else
                     {
-                        // Neither provided — invalid
-                        ModelState.AddModelError("QuizScore", "Please provide a Quiz Score or the number of Correct Answers.");
+                        ModelState.AddModelError("QuizScore",
+                            "Please provide a Quiz Score or the number of Correct Answers.");
                     }
                 }
+            }
+            else
+            {
+                ModelState.AddModelError("QuizId", "Please select a quiz.");
             }
 
             if (!ModelState.IsValid)
             {
-                // Collect modelstate errors for easier debugging/display
-                var errors = ModelState.Where(kv => kv.Value.Errors.Any())
-                    .Select(kv => new {
-                        Key = kv.Key,
-                        Errors = kv.Value.Errors.Select(e => e.ErrorMessage).ToArray()
-                    }).ToList();
-                if (errors.Any())
-                {
-                    var flat = string.Join("; ", errors.SelectMany(e => e.Errors));
-                    TempData["ModelErrors"] = flat;
-                }
-                // Repopulate selects based on role
-                if (User.IsInRole("Student"))
-                {
-                    var enrollments = await _db.Enrollments
-                        .Include(e => e.Module)
-                        .Where(e => e.UserId == currentUserId)
-                        .ToListAsync();
+                var flat = string.Join("; ", ModelState
+                    .Where(kv => kv.Value!.Errors.Any())
+                    .SelectMany(kv => kv.Value!.Errors.Select(e => $"{kv.Key}: {e.ErrorMessage}")));
+                TempData["ModelErrors"] = flat;
 
-                    var modules = enrollments.Select(e => e.Module!).Where(m => m != null).Distinct().ToList();
-                    ViewBag.Modules = new SelectList(modules, "ModuleId", "Title");
-
-                    var moduleIds = modules.Select(m => m!.ModuleId).ToList();
-                    var quizzes = await _db.Quizzes.Where(q => moduleIds.Contains(q.ModuleId)).ToListAsync();
-                    ViewBag.Quizzes = new SelectList(quizzes, "QuizId", "Title");
-                    ViewBag.QuizzesRaw = quizzes;
-                }
-                else
-                {
-                    ViewBag.Modules = new SelectList(await _db.LearningModules.ToListAsync(), "ModuleId", "Title");
-                    var allQuizzes = await _db.Quizzes.ToListAsync();
-                    ViewBag.Quizzes = new SelectList(allQuizzes, "QuizId", "Title");
-                    ViewBag.QuizzesRaw = allQuizzes;
-                }
-
+                await RepopulateViewBags(currentUserId);
                 return View(model);
             }
 
@@ -198,39 +196,57 @@ namespace AdaptiveLearningSystem.Controllers
             {
                 _db.StudentProgresses.Add(model);
                 await _db.SaveChangesAsync();
-                TempData["Success"] = "Progress recorded.";
+                TempData["Success"] = "Progress recorded successfully.";
                 return RedirectToAction("Index", "Dashboard");
             }
             catch (Exception ex)
             {
-                // capture and return the error to the view for debugging
-                TempData["ModelErrors"] = ex.Message;
-                // Repopulate selects based on role before returning
-                var currentUser = await _userManager.GetUserAsync(User);
-                if (User.IsInRole("Student"))
-                {
-                    var enrollments = await _db.Enrollments
-                        .Include(e => e.Module)
-                        .Where(e => e.UserId == currentUser!.Id)
-                        .ToListAsync();
-
-                    var modules = enrollments.Select(e => e.Module!).Where(m => m != null).Distinct().ToList();
-                    ViewBag.Modules = new SelectList(modules, "ModuleId", "Title");
-
-                    var moduleIds = modules.Select(m => m!.ModuleId).ToList();
-                    var quizzes = await _db.Quizzes.Where(q => moduleIds.Contains(q.ModuleId)).ToListAsync();
-                    ViewBag.Quizzes = new SelectList(quizzes, "QuizId", "Title");
-                    ViewBag.QuizzesRaw = quizzes;
-                }
-                else
-                {
-                    ViewBag.Modules = new SelectList(await _db.LearningModules.ToListAsync(), "ModuleId", "Title");
-                    var allQuizzes = await _db.Quizzes.ToListAsync();
-                    ViewBag.Quizzes = new SelectList(allQuizzes, "QuizId", "Title");
-                    ViewBag.QuizzesRaw = allQuizzes;
-                }
-
+                TempData["ModelErrors"] = ex.InnerException?.Message ?? ex.Message;
+                await RepopulateViewBags(currentUserId);
                 return View(model);
+            }
+        }
+
+        private async Task RepopulateViewBags(string? currentUserId)
+        {
+            if (User.IsInRole("Student"))
+            {
+                var enrollments = await _db.Enrollments
+                    .Include(e => e.Module)
+                    .Where(e => e.UserId == currentUserId)
+                    .ToListAsync();
+
+                var modules = enrollments.Select(e => e.Module!)
+                    .Where(m => m != null).Distinct().ToList();
+                ViewBag.Modules = new SelectList(modules, "ModuleId", "Title");
+
+                var moduleIds = modules.Select(m => m!.ModuleId).ToList();
+                var quizzes = await _db.Quizzes
+                    .Where(q => moduleIds.Contains(q.ModuleId)).ToListAsync();
+                ViewBag.Quizzes = new SelectList(quizzes, "QuizId", "Title");
+                ViewBag.QuizzesRaw = quizzes;
+            }
+            else
+            {
+                var studentRole = await _db.Roles.FirstOrDefaultAsync(r => r.Name == "Student");
+                List<ApplicationUser> students = new();
+                if (studentRole != null)
+                {
+                    var studentIds = await _db.UserRoles
+                        .Where(ur => ur.RoleId == studentRole.Id)
+                        .Select(ur => ur.UserId)
+                        .ToListAsync();
+                    students = await _db.Users
+                        .Where(u => studentIds.Contains(u.Id))
+                        .OrderBy(u => u.FullName)
+                        .ToListAsync();
+                }
+                ViewBag.Students = new SelectList(students, "Id", "FullName");
+                ViewBag.Modules = new SelectList(
+                    await _db.LearningModules.ToListAsync(), "ModuleId", "Title");
+                var allQuizzes = await _db.Quizzes.ToListAsync();
+                ViewBag.Quizzes = new SelectList(allQuizzes, "QuizId", "Title");
+                ViewBag.QuizzesRaw = allQuizzes;
             }
         }
     }

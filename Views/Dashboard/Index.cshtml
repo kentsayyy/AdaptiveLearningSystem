@@ -3,14 +3,8 @@
     ViewData["Title"] = "Dashboard";
 }
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-        <h4 class="fw-bold mb-0"><i class="bi bi-speedometer2 me-2 text-primary"></i>Learning Analytics Dashboard</h4>
-        <small class="text-muted">AdaptLearn PH — SDG 4 Quality Education</small>
-    </div>
-    <span class="badge rounded-pill px-3 py-2" style="background:linear-gradient(135deg,#198754,#0d6efd);font-size:.8rem;">
-        <i class="bi bi-patch-check me-1"></i>SDG 4
-    </span>
+<div class="mb-4">
+    <h4 class="fw-bold mb-0"><i class="bi bi-speedometer2 me-2 text-primary"></i>Learning Analytics Dashboard</h4>
 </div>
 
 <!-- Summary Cards -->
@@ -60,7 +54,8 @@
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
                         <div class="small fw-semibold opacity-75">Avg Score</div>
-                        <h2 class="mb-0">@Model.AverageScore%</h2>
+                        
+                        <h2 class="mb-0">@Model.AverageScore</h2>
                     </div>
                     <i class="bi bi-bar-chart-fill fs-2 opacity-50"></i>
                 </div>
@@ -96,7 +91,8 @@
                                     <tr>
                                         <td><i class="bi bi-person-circle me-1 text-muted"></i>@p.User?.FullName</td>
                                         <td class="text-truncate" style="max-width:120px;">@p.Module?.Title</td>
-                                        <td><span class="badge bg-danger">@p.QuizScore%</span></td>
+                                        
+                                        <td><span class="badge bg-danger">@p.QuizScore</span></td>
                                         <td><span class="badge bg-warning text-dark">@p.Recommendation</span></td>
                                     </tr>
                                 }
@@ -179,7 +175,8 @@
                                 <td class="text-truncate" style="max-width:120px;">@p.Module?.Title</td>
                                 <td class="text-truncate" style="max-width:100px;">@p.Quiz?.Title</td>
                                 <td>
-                                    <span class="badge @(p.QuizScore >= 75 ? "bg-success" : "bg-danger")">@p.QuizScore%</span>
+                                    
+                                    <span class="badge @(p.QuizScore >= 75 ? "bg-success" : "bg-danger")">@p.QuizScore</span>
                                 </td>
                                 <td>
                                     <span class="badge @(p.CompletionStatus == "Completed" ? "bg-success" : "bg-secondary")">@p.CompletionStatus</span>
