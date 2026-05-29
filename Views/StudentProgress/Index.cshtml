@@ -1,0 +1,108 @@
+@model IEnumerable<AdaptiveLearningSystem.Models.StudentProgress>
+@{
+    ViewData["Title"] = "Progress Records";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="fw-bold mb-0"><i class="bi bi-bar-chart-fill me-2 text-primary"></i>Student Progress Records</h4>
+    @if (User.IsInRole("Admin") || User.IsInRole("Teacher"))
+    {
+        <a asp-action="Create" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg me-1"></i>Record Progress</a>
+    }
+</div>
+
+<div class="card mb-3">
+    <div class="card-body py-2">
+        <form method="get" class="d-flex flex-wrap gap-2 align-items-end">
+            <div>
+                <label class="form-label small mb-1">Student Name</label>
+                <input name="studentName" class="form-control form-control-sm" value="@ViewBag.StudentName" placeholder="Search..." style="min-width:160px;" />
+            </div>
+            <div>
+                <label class="form-label small mb-1">Status</label>
+                <select name="status" class="form-select form-select-sm" style="min-width:140px;">
+                    <option value="">All Status</option>
+                    <option value="In Progress" selected="@(ViewBag.Status == "In Progress" ? "selected" : null)">In Progress</option>
+                    <option value="Completed" selected="@(ViewBag.Status == "Completed" ? "selected" : null)">Completed</option>
+                </select>
+            </div>
+            <div>
+                <label class="form-label small mb-1">From Date</label>
+                <input type="date" name="fromDate" class="form-control form-control-sm" value="@ViewBag.FromDate" />
+            </div>
+            <div>
+                <label class="form-label small mb-1">To Date</label>
+                <input type="date" name="toDate" class="form-control form-control-sm" value="@ViewBag.ToDate" />
+            </div>
+            <div class="d-flex gap-2 align-self-end">
+                <button class="btn btn-primary btn-sm">Filter</button>
+                <a asp-action="Index" class="btn btn-outline-secondary btn-sm">Clear</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body p-0">
+        @if (Model.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-striped table-hover mb-0">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Student</th>
+                            <th>Module</th>
+                            <th>Quiz</th>
+                            <th>Score</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                            <th>Recommendation</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var p in Model)
+                        {
+                            var totalItems = p.Quiz?.TotalItems ?? 0;
+                            var percent = totalItems > 0
+                                ? (p.QuizScore / totalItems) * 100
+                                : p.QuizScore;
+                            var scoreDisplay = totalItems > 0
+                                ? $"{(int)p.QuizScore}/{totalItems}"
+                                : p.QuizScore.ToString();
+                            var isPassing = percent >= 75;
+
+                            <tr>
+                                <td>@p.User?.FullName</td>
+                                <td class="text-truncate" style="max-width:130px;">@p.Module?.Title</td>
+                                <td class="text-truncate" style="max-width:120px;">@p.Quiz?.Title</td>
+                                <td>
+                                    <span class="badge @(isPassing ? "bg-success" : "bg-danger")">
+                                        @scoreDisplay
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge @(p.CompletionStatus == "Completed" ? "bg-success" : "bg-warning text-dark")">
+                                        @p.CompletionStatus
+                                    </span>
+                                </td>
+                                <td class="small text-muted">@p.DateCompleted.ToShortDateString()</td>
+                                <td>
+                                    <span class="badge @(isPassing ? "bg-success" : "bg-warning text-dark") small">
+                                        @p.Recommendation
+                                    </span>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="text-center text-muted py-5">
+                <i class="bi bi-bar-chart fs-1"></i>
+                <p class="mt-2">No progress records found.</p>
+            </div>
+        }
+    </div>
+</div>

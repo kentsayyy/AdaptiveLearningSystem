@@ -1,0 +1,206 @@
+@model AdaptiveLearningSystem.Models.StudentProgress
+@using AdaptiveLearningSystem.Models
+@{
+    var selectedModuleValue = Model?.ModuleId.ToString()
+        ?? (ViewBag.SelectedModuleId as string ?? "");
+    var selectedQuizId = Model?.QuizId ?? (ViewBag.SelectedQuizId ?? 0);
+}
+@{
+    ViewData["Title"] = "Record Progress";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="fw-bold mb-0"><i class="bi bi-plus-circle me-2 text-primary"></i>Record Quiz Progress</h4>
+    <a asp-action="Index" asp-controller="Dashboard" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left me-1"></i>Dashboard
+    </a>
+</div>
+
+<div class="card" style="max-width:520px;">
+    <div class="card-body">
+        <form asp-action="Create" method="post" id="progressForm">
+            @Html.AntiForgeryToken()
+
+            @if (TempData["ModelErrors"] != null)
+            {
+                <div class="alert alert-danger small">@TempData["ModelErrors"]</div>
+            }
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small"></div>
+            @if (User.IsInRole("Admin") || User.IsInRole("Teacher"))
+            {
+                <div class="mb-3">
+                    <label asp-for="UserId" class="form-label fw-semibold">Student</label>
+                    <select asp-for="UserId" class="form-select" asp-items="ViewBag.Students">
+                        <option value="">-- Select Student --</option>
+                    </select>
+                    <span asp-validation-for="UserId" class="text-danger small"></span>
+                </div>
+            }
+
+            <div class="mb-3">
+                <label asp-for="ModuleId" class="form-label fw-semibold">Module</label>
+                <select asp-for="ModuleId" class="form-select" id="ModuleId">
+                    <option value="">-- Select Module --</option>
+                    @if (ViewBag.Modules is Microsoft.AspNetCore.Mvc.Rendering.SelectList modules)
+                    {
+                        foreach (var m in modules)
+                        {
+                            if (selectedModuleValue == m.Value)
+                            {
+                                <option value="@m.Value" selected="selected">@m.Text</option>
+                            }
+                            else
+                            {
+                                <option value="@m.Value">@m.Text</option>
+                            }
+                        }
+                    }
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="QuizId" class="form-label fw-semibold">Quiz</label>
+                <select asp-for="QuizId" class="form-select" id="QuizId">
+                    <option value="">-- Select Quiz --</option>
+                    @if (ViewBag.QuizzesRaw is IEnumerable<Quiz> quizList)
+                    {
+                        foreach (var q in quizList)
+                        {
+                            if (selectedQuizId == q.QuizId)
+                            {
+                                <option value="@q.QuizId" data-module="@q.ModuleId" data-items="@q.TotalItems" selected>@q.Title</option>
+                            }
+                            else
+                            {
+                                <option value="@q.QuizId" data-module="@q.ModuleId" data-items="@q.TotalItems">@q.Title</option>
+                            }
+                        }
+                    }
+                    else if (ViewBag.Quizzes is Microsoft.AspNetCore.Mvc.Rendering.SelectList qitems)
+                    {
+                        foreach (var qi in qitems)
+                        {
+                            <option value="@qi.Value">@qi.Text</option>
+                        }
+                    }
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Correct Answers</label>
+                <input asp-for="CorrectAnswers" class="form-control" type="number" min="0" step="1" id="CorrectAnswers" />
+                <span asp-validation-for="CorrectAnswers" class="text-danger small"></span>
+                <div class="form-text small text-muted">
+                    Enter number of correct answers — the percentage will be computed automatically.
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="QuizScore" class="form-label fw-semibold">Quiz Score (%)</label>
+                <input asp-for="QuizScore" class="form-control" type="number" min="0" max="100" step="0.5" id="QuizScore" />
+                <span asp-validation-for="QuizScore" class="text-danger small"></span>
+                <div class="d-flex justify-content-between align-items-center">
+                    <small class="text-muted">Scores below 75 will trigger "Review Basic Lesson" recommendation.</small>
+                    <small id="quizItemsInfo" class="text-muted">&nbsp;</small>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <label asp-for="CompletionStatus" class="form-label fw-semibold">Status</label>
+                <select asp-for="CompletionStatus" class="form-select">
+                    <option value="In Progress">In Progress</option>
+                    <option value="Completed">Completed</option>
+                </select>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary fw-semibold">
+                    <i class="bi bi-save me-1"></i>Save Record
+                </button>
+                <a asp-action="Index" asp-controller="Dashboard" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+(function () {
+    const moduleSelect = document.getElementById('ModuleId');
+    const quizSelect = document.getElementById('QuizId');
+    const quizItemsInfo = document.getElementById('quizItemsInfo');
+    const correctInput = document.getElementById('CorrectAnswers');
+    const scoreInput = document.getElementById('QuizScore');
+
+    function updateQuizItemsInfo() {
+        if (!quizItemsInfo || !quizSelect) return;
+        const sel = quizSelect.options[quizSelect.selectedIndex];
+        if (!sel) { quizItemsInfo.textContent = ''; setCorrectMax(null); return; }
+        const items = sel.getAttribute('data-items');
+        if (items) {
+            quizItemsInfo.textContent = `Total items: ${items}`;
+            setCorrectMax(parseInt(items, 10));
+        } else {
+            quizItemsInfo.textContent = '';
+            setCorrectMax(null);
+        }
+    }
+
+    function setCorrectMax(max) {
+        if (!correctInput) return;
+        if (max && max > 0) {
+            correctInput.max = max;
+            correctInput.placeholder = `0 - ${max}`;
+        } else {
+            correctInput.removeAttribute('max');
+            correctInput.placeholder = '';
+        }
+    }
+
+    function computeScoreFromCorrect() {
+        if (!correctInput || !scoreInput || !quizSelect) return;
+        const sel = quizSelect.options[quizSelect.selectedIndex];
+        const items = sel ? parseInt(sel.getAttribute('data-items') || '0', 10) : 0;
+        const correctVal = parseInt(correctInput.value || '0', 10);
+        if (!items || items <= 0) { scoreInput.value = ''; return; }
+        if (isNaN(correctVal) || correctVal < 0) { scoreInput.value = ''; return; }
+        const clamped = Math.min(Math.max(correctVal, 0), items);
+        scoreInput.value = (Math.round((clamped / items) * 10000) / 100).toString();
+    }
+
+    function filterQuizzes() {
+        const selectedModule = moduleSelect.value;
+        for (let i = 0; i < quizSelect.options.length; i++) {
+            const opt = quizSelect.options[i];
+            const mod = opt.getAttribute('data-module');
+            if (!mod) continue;
+            if (selectedModule === '' || mod === selectedModule) {
+                opt.style.display = '';
+            } else {
+                opt.style.display = 'none';
+                if (opt.selected) opt.selected = false;
+            }
+        }
+        updateQuizItemsInfo();
+    }
+
+    if (moduleSelect && quizSelect) {
+        moduleSelect.addEventListener('change', filterQuizzes);
+        quizSelect.addEventListener('change', function () {
+            updateQuizItemsInfo();
+            computeScoreFromCorrect();
+        });
+        filterQuizzes();
+    }
+
+    if (correctInput) {
+        correctInput.addEventListener('input', computeScoreFromCorrect);
+    }
+
+    const progressForm = document.getElementById('progressForm');
+    if (progressForm) {
+        progressForm.addEventListener('submit', function () {
+            computeScoreFromCorrect();
+        });
+    }
+})();
+</script>

@@ -1,0 +1,198 @@
+@model AdaptiveLearningSystem.ViewModels.RegisterViewModel
+@{
+    ViewData["Title"] = "Register";
+    Layout = "_Layout";
+}
+
+<style>
+    /* ─── AUTH BACKGROUND ─────────────────────────────────────────── */
+    .auth-bg {
+        min-height: 100vh;
+        background-color: #f0f4f9;
+        background-image:
+            /* Faint ruled lines — notebook feel */
+            repeating-linear-gradient(
+                180deg,
+                transparent,
+                transparent 31px,
+                rgba(11, 79, 216, 0.045) 31px,
+                rgba(11, 79, 216, 0.045) 32px
+            ),
+            /* Subtle dot grid */
+            radial-gradient(circle, rgba(13, 158, 110, 0.18) 1px, transparent 1px);
+        background-size: 100% 32px, 28px 28px;
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem 0;
+    }
+
+    /* ─── WATERCOLOR BLOBS (very low opacity) ──────────────────────── */
+    .auth-bg::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+            radial-gradient(ellipse 520px 380px at 10% 15%,  rgba(11, 79, 216, 0.07)  0%, transparent 70%),
+            radial-gradient(ellipse 420px 320px at 90% 80%,  rgba(13, 158, 110, 0.08) 0%, transparent 70%),
+            radial-gradient(ellipse 300px 260px at 85% 12%,  rgba(11, 79, 216, 0.05)  0%, transparent 65%),
+            radial-gradient(ellipse 260px 200px at 5%  85%,  rgba(13, 158, 110, 0.06) 0%, transparent 65%);
+        pointer-events: none;
+        z-index: 0;
+    }
+
+    /* ─── CARD sits above everything ──────────────────────────────── */
+    .auth-card {
+        position: relative;
+        z-index: 1;
+    }
+
+    /* ─── FLOATING SVG DECORATION ─────────────────────────────────── */
+    .deco {
+        position: absolute;
+        pointer-events: none;
+        z-index: 0;
+    }
+</style>
+
+<div class="auth-bg">
+
+    <!-- Graduation cap — top right -->
+    <svg class="deco" style="width:96px; top:5%; right:7%; opacity:0.06;" viewBox="0 0 24 24" fill="none" stroke="#0B4FD8" stroke-width="1.4">
+        <path d="M22 9L12 4 2 9l10 5 10-5z"/>
+        <path d="M6 11.5v5c0 1.657 2.686 3 6 3s6-1.343 6-3v-5"/>
+        <line x1="22" y1="9" x2="22" y2="14"/>
+    </svg>
+
+    <!-- Open book — bottom left -->
+    <svg class="deco" style="width:110px; bottom:5%; left:5%; opacity:0.07;" viewBox="0 0 24 24" fill="none" stroke="#0D9E6E" stroke-width="1.4">
+        <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+        <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+    </svg>
+
+    <!-- Pencil — top left -->
+    <svg class="deco" style="width:72px; top:12%; left:8%; opacity:0.07;" viewBox="0 0 24 24" fill="none" stroke="#0B4FD8" stroke-width="1.4">
+        <path d="M12 20h9"/>
+        <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/>
+    </svg>
+
+    <!-- Star / award — bottom right -->
+    <svg class="deco" style="width:80px; bottom:10%; right:6%; opacity:0.06;" viewBox="0 0 24 24" fill="none" stroke="#0D9E6E" stroke-width="1.4">
+        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+    </svg>
+
+    <!-- Atom / science — mid left -->
+    <svg class="deco" style="width:64px; top:48%; left:3%; opacity:0.055;" viewBox="0 0 24 24" fill="none" stroke="#0B4FD8" stroke-width="1.4">
+        <circle cx="12" cy="12" r="1"/>
+        <ellipse cx="12" cy="12" rx="10" ry="4"/>
+        <ellipse cx="12" cy="12" rx="10" ry="4" transform="rotate(60 12 12)"/>
+        <ellipse cx="12" cy="12" rx="10" ry="4" transform="rotate(120 12 12)"/>
+    </svg>
+
+    <!-- White card — EXACTLY as original, zero changes inside -->
+    <div class="card shadow-lg auth-card" style="width:100%;max-width:460px;border-radius:16px;">
+        <div class="card-body p-4">
+            <div class="text-center mb-4">
+                <i class="bi bi-person-plus-fill text-primary fs-1"></i>
+                <h3 class="fw-bold mt-2">Create Account</h3>
+                <p class="text-muted small">Join AdaptLearn PH</p>
+            </div>
+
+            <form asp-action="Register" method="post">
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small"></div>
+
+                <div class="mb-3">
+                    <label asp-for="FullName" class="form-label fw-semibold">Full Name</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-person"></i></span>
+                        <input asp-for="FullName" class="form-control" placeholder="Juan dela Cruz" />
+                    </div>
+                    <span asp-validation-for="FullName" class="text-danger small"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Email" class="form-label fw-semibold">Email</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                        <input asp-for="Email" class="form-control" placeholder="your@email.com" />
+                    </div>
+                    <span asp-validation-for="Email" class="text-danger small"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Role" class="form-label fw-semibold">Register As</label>
+                    <select asp-for="Role" class="form-select">
+                        <option value="Student">Student</option>
+                        <option value="Teacher">Teacher</option>
+                        <option value="Admin">Admin</option>
+                    </select>
+                    <span asp-validation-for="Role" class="text-danger small"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Password" class="form-label fw-semibold">Password</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                        <input asp-for="Password" class="form-control" placeholder="Min 6 characters" id="registerPasswordInput" />
+                        <span class="input-group-text" id="toggleRegisterPassword" style="cursor:pointer;" title="Show / hide password" onclick="toggleRegisterPassword('registerPasswordInput','registerPasswordIcon')">
+                            <i class="bi bi-eye" id="registerPasswordIcon"></i>
+                        </span>
+                    </div>
+                    <span asp-validation-for="Password" class="text-danger small"></span>
+                </div>
+
+                <div class="mb-4">
+                    <label asp-for="ConfirmPassword" class="form-label fw-semibold">Confirm Password</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-lock-fill"></i></span>
+                        <input asp-for="ConfirmPassword" class="form-control" placeholder="Repeat password" id="registerConfirmPasswordInput" />
+                        <span class="input-group-text" id="toggleRegisterConfirmPassword" style="cursor:pointer;" title="Show / hide confirm password" onclick="toggleRegisterPassword('registerConfirmPasswordInput','registerConfirmPasswordIcon')">
+                            <i class="bi bi-eye" id="registerConfirmPasswordIcon"></i>
+                        </span>
+                    </div>
+                    <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
+                </div>
+
+                <button type="submit" class="btn btn-success w-100 py-2 fw-semibold">
+                    <i class="bi bi-check-circle me-2"></i>Create Account
+                </button>
+            </form>
+
+            <hr />
+            <p class="text-center small mb-0">
+                Already have an account? <a asp-controller="Account" asp-action="Login">Sign in</a>
+            </p>
+        </div>
+    </div>
+</div>
+
+<script>
+    function togglePasswordVisibility() {
+        var input = document.getElementById('passwordInput');
+        var icon  = document.getElementById('passwordLockIcon');
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.classList.replace('bi-lock', 'bi-unlock');
+        } else {
+            input.type = 'password';
+            icon.classList.replace('bi-unlock', 'bi-lock');
+        }
+    }
+</script>
+
+<script>
+    function toggleRegisterPassword(inputId, iconId) {
+        var input = document.getElementById(inputId);
+        var icon = document.getElementById(iconId);
+        if (!input || !icon) return;
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.classList.replace('bi-eye', 'bi-eye-slash');
+        } else {
+            input.type = 'password';
+            icon.classList.replace('bi-eye-slash', 'bi-eye');
+        }
+    }
+</script>

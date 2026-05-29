@@ -1,0 +1,98 @@
+@{
+    ViewData["Title"] = "Enroll in Module";
+}
+
+<div class="mb-4">
+    <h4 class="fw-bold mb-0"><i class="bi bi-journal-plus me-2 text-success"></i>Enroll in Module</h4>
+    <small class="text-muted">Select a module to enroll in</small>
+</div>
+
+<div>
+    <form asp-action="Enroll" method="post" id="enrollForm">
+        <div class="mb-3 row">
+            <div class="col-md-6 mb-2">
+                <input id="moduleSearch" class="form-control" placeholder="Search modules by title or teacher..." />
+            </div>
+            <div class="col-md-6 text-md-end">
+                <button type="button" id="selectAll" class="btn btn-sm btn-outline-primary me-2">Select All</button>
+                <button type="button" id="clearAll" class="btn btn-sm btn-outline-secondary">Clear</button>
+            </div>
+        </div>
+
+        <div class="row g-3">
+            @if (ViewBag.ModulesList != null)
+            {
+                var modules = (IEnumerable<dynamic>)ViewBag.ModulesList;
+                foreach (var module in modules)
+                {
+                    <div class="col-12 col-md-6 col-lg-4">
+                        <div class="card h-100 shadow-sm module-card" data-title="@module.Title.ToString().ToLower()" data-teacher="@(module.Teacher != null ? module.Teacher.FullName.ToString().ToLower() : "")">
+                            <div class="card-body d-flex flex-column">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <h6 class="card-title mb-0">@module.Title</h6>
+                                    <div>
+                                        <input type="checkbox" name="moduleIds" value="@module.ModuleId" class="form-check-input enroll-checkbox" />
+                                    </div>
+                                </div>
+                                <p class="mb-1 text-muted small">@((module.Description ?? "No description").ToString())</p>
+                                <div class="mt-auto small text-muted">Teacher: @((module.Teacher != null) ? module.Teacher.FullName : "TBA")</div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="col-12">
+                    <div class="alert alert-info">No modules available.</div>
+                </div>
+            }
+        </div>
+
+        <div class="mt-4 d-flex gap-2">
+            <button type="submit" class="btn btn-success fw-semibold">
+                <i class="bi bi-check-lg me-1"></i>Enroll
+            </button>
+            <a asp-action="MyModules" class="btn btn-secondary">Cancel</a>
+        </div>
+    </form>
+</div>
+
+<style>
+    .module-card { border-radius: .6rem; }
+    .module-card .card-body { min-height: 120px; }
+    .enroll-checkbox { width: 18px; height: 18px; }
+</style>
+
+<script>
+    (function(){
+        const search = document.getElementById('moduleSearch');
+        const cards = Array.from(document.querySelectorAll('.module-card'));
+        const selectAllBtn = document.getElementById('selectAll');
+        const clearAllBtn = document.getElementById('clearAll');
+
+        function filterModules() {
+            const q = search.value.trim().toLowerCase();
+            cards.forEach(card => {
+                const title = card.dataset.title || '';
+                const teacher = card.dataset.teacher || '';
+                const show = !q || title.includes(q) || teacher.includes(q);
+                card.parentElement.style.display = show ? '' : 'none';
+            });
+        }
+
+        search.addEventListener('input', filterModules);
+
+        selectAllBtn.addEventListener('click', () => {
+            document.querySelectorAll('.enroll-checkbox:visible, .enroll-checkbox').forEach(cb => cb.checked = true);
+        });
+        clearAllBtn.addEventListener('click', () => {
+            document.querySelectorAll('.enroll-checkbox').forEach(cb => cb.checked = false);
+        });
+
+        // For older browsers that don't support :visible, fallback implemented in selectAll
+        Document.prototype.querySelectorAllVisible = function(selector) {
+            return Array.from(this.querySelectorAll(selector)).filter(el => el.offsetParent !== null);
+        };
+    })();
+</script>

@@ -1,0 +1,193 @@
+@model AdaptiveLearningSystem.ViewModels.DashboardViewModel
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<div class="mb-4">
+    <h4 class="fw-bold mb-0"><i class="bi bi-speedometer2 me-2 text-primary"></i>Learning Analytics Dashboard</h4>
+</div>
+
+<!-- Summary Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="card card-stat bg-primary text-white">
+            <div class="card-body py-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="small fw-semibold opacity-75">Total Students</div>
+                        <h2 class="mb-0">@Model.TotalStudents</h2>
+                    </div>
+                    <i class="bi bi-people-fill fs-2 opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card card-stat bg-success text-white">
+            <div class="card-body py-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="small fw-semibold opacity-75">Total Modules</div>
+                        <h2 class="mb-0">@Model.TotalModules</h2>
+                    </div>
+                    <i class="bi bi-journal-bookmark-fill fs-2 opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card card-stat bg-info text-white">
+            <div class="card-body py-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="small fw-semibold opacity-75">Completed</div>
+                        <h2 class="mb-0">@Model.TotalCompleted</h2>
+                    </div>
+                    <i class="bi bi-check-circle-fill fs-2 opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card card-stat bg-warning">
+            <div class="card-body py-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="small fw-semibold opacity-75">Avg Score</div>
+                        
+                        <h2 class="mb-0">@Model.AverageScore</h2>
+                    </div>
+                    <i class="bi bi-bar-chart-fill fs-2 opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Struggling Students -->
+    <div class="col-md-7">
+        <div class="card h-100">
+            <div class="card-header bg-danger text-white d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-exclamation-triangle-fill me-2"></i>Students Needing Support (Score &lt; 75)</span>
+                <span class="badge bg-white text-danger">@Model.StrugglingStudents.Count</span>
+            </div>
+            <div class="card-body p-0">
+                @if (Model.StrugglingStudents.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Student</th>
+                                    <th>Module</th>
+                                    <th>Score</th>
+                                    <th>Recommendation</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var p in Model.StrugglingStudents)
+                                {
+                                    <tr>
+                                        <td><i class="bi bi-person-circle me-1 text-muted"></i>@p.User?.FullName</td>
+                                        <td class="text-truncate" style="max-width:120px;">@p.Module?.Title</td>
+                                        
+                                        <td><span class="badge bg-danger">@p.QuizScore</span></td>
+                                        <td><span class="badge bg-warning text-dark">@p.Recommendation</span></td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center text-muted py-5">
+                        <i class="bi bi-emoji-smile fs-1 text-success"></i>
+                        <p class="mt-2">No struggling students. Great job!</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Inactive Students -->
+    <div class="col-md-5">
+        <div class="card h-100">
+            <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-clock-history me-2"></i>Inactive (7+ days)</span>
+                <span class="badge bg-white text-secondary">@Model.InactiveStudents.Count</span>
+            </div>
+            <div class="card-body p-0">
+                @if (Model.InactiveStudents.Any())
+                {
+                    <ul class="list-group list-group-flush">
+                        @foreach (var s in Model.InactiveStudents.Take(8))
+                        {
+                            <li class="list-group-item d-flex align-items-center">
+                                <i class="bi bi-person-x text-secondary me-2"></i>
+                                <div>
+                                    <div class="fw-semibold small">@s.FullName</div>
+                                    <div class="text-muted" style="font-size:.75rem;">@s.Email</div>
+                                </div>
+                            </li>
+                        }
+                    </ul>
+                }
+                else
+                {
+                    <div class="text-center text-muted py-5">
+                        <i class="bi bi-activity fs-1 text-success"></i>
+                        <p class="mt-2">All students are active!</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Progress -->
+@if (Model.RecentProgress.Any())
+{
+    <div class="card mt-4">
+        <div class="card-header bg-primary text-white">
+            <i class="bi bi-clock me-2"></i>Recent Activity
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Student</th>
+                            <th>Module</th>
+                            <th>Quiz</th>
+                            <th>Score</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                            <th>Recommendation</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var p in Model.RecentProgress)
+                        {
+                            <tr>
+                                <td>@p.User?.FullName</td>
+                                <td class="text-truncate" style="max-width:120px;">@p.Module?.Title</td>
+                                <td class="text-truncate" style="max-width:100px;">@p.Quiz?.Title</td>
+                                <td>
+                                    
+                                    <span class="badge @(p.QuizScore >= 75 ? "bg-success" : "bg-danger")">@p.QuizScore</span>
+                                </td>
+                                <td>
+                                    <span class="badge @(p.CompletionStatus == "Completed" ? "bg-success" : "bg-secondary")">@p.CompletionStatus</span>
+                                </td>
+                                <td class="small text-muted">@p.DateCompleted.ToShortDateString()</td>
+                                <td><span class="badge bg-warning text-dark small">@p.Recommendation</span></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+}
