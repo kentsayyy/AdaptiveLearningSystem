@@ -1,0 +1,66 @@
+@model IEnumerable<AdaptiveLearningSystem.Models.Enrollment>
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="fw-bold mb-0"><i class="bi bi-book-fill me-2 text-primary"></i>My Modules</h4>
+        <small class="text-muted">Modules you are currently enrolled in</small>
+    </div>
+
+    @* Google Classroom-like + button (students only) *@
+    @if (User.IsInRole("Student"))
+    {
+        <div class="dropdown">
+            <button class="btn btn-primary d-flex align-items-center justify-content-center" type="button" id="joinClassBtn" data-bs-toggle="dropdown" aria-expanded="false" style="width:44px;height:44px;border-radius:50%;">
+                <i class="bi bi-plus-lg" style="font-size:1.25rem;color:white;"></i>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="joinClassBtn">
+                <li><a class="dropdown-item" asp-controller="Enrollments" asp-action="Enroll">Join class</a></li>
+            </ul>
+        </div>
+    }
+
+</div>
+
+@if (Model.Any())
+{
+    <div class="row g-4">
+        @foreach (var e in Model)
+        {
+            <div class="col-md-4">
+                <div class="card h-100 module-card position-relative">
+                    @if (e.Module != null)
+                    {
+                        <a asp-controller="LearningModules" asp-action="Details" asp-route-id="@(e.Module.ModuleId)" class="stretched-link" aria-label="Open @e.Module.Title"></a>
+                    }
+                    <div class="card-header @(e.Module?.Level == "Advanced" ? "bg-danger" : "bg-success") text-white d-flex justify-content-between align-items-center">
+                        <span class="fw-semibold text-truncate">@e.Module?.Title</span>
+                        <span class="badge bg-white @(e.Module?.Level == "Advanced" ? "text-danger" : "text-success") ms-2">@e.Module?.Level</span>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted small">@e.Module?.Description</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="badge bg-info text-dark">@e.Module?.Subject</span>
+                            <span class="badge @(e.Status == "Active" ? "bg-success" : "bg-secondary")">@e.Status</span>
+                        </div>
+                    </div>
+                    <div class="card-footer text-muted small">
+                        <i class="bi bi-person me-1"></i>@(e.Module?.Teacher?.FullName ?? "TBA")
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+else
+{
+    <div class="card text-center py-5">
+        <div class="card-body">
+            <i class="bi bi-book fs-1 text-muted"></i>
+            <p class="mt-3 text-muted">You are not enrolled in any modules yet.</p>
+            <a asp-controller="Enrollments" asp-action="Enroll" class="btn btn-success mt-3">Browse Modules</a>
+        </div>
+    </div>
+}

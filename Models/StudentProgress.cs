@@ -29,6 +29,10 @@ namespace AdaptiveLearningSystem.Models
         public string Recommendation =>
             QuizScore < 75 ? "Review Basic Lesson" : "Proceed to Advanced Lesson";
 
+        // Allow binding of raw correct answers in the form and compute QuizScore server-side
+        [NotMapped]
+        public int? CorrectAnswers { get; set; }
+
         // Navigation
         public ApplicationUser? User { get; set; }
         public LearningModule? Module { get; set; }

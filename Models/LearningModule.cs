@@ -30,5 +30,9 @@ namespace AdaptiveLearningSystem.Models
         public ICollection<Quiz>? Quizzes { get; set; }
         public ICollection<Enrollment>? Enrollments { get; set; }
         public ICollection<StudentProgress>? Progresses { get; set; }
+
+        // Assigned teacher
+        public string? TeacherId { get; set; }
+        public ApplicationUser? Teacher { get; set; }
     }
 }

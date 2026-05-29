@@ -35,6 +35,17 @@
                 <textarea asp-for="Description" class="form-control" rows="3" placeholder="Brief description of this module..."></textarea>
                 <span asp-validation-for="Description" class="text-danger small"></span>
             </div>
+            @* Teacher selection is only available to admins. Teachers creating a module are assigned automatically. *@
+            @if (User.IsInRole("Admin"))
+            {
+                <div class="mb-3">
+                    <label asp-for="TeacherId" class="form-label fw-semibold">Teacher</label>
+                    <select asp-for="TeacherId" class="form-select" asp-items="ViewBag.Teachers">
+                        <option value="">-- Select Teacher --</option>
+                    </select>
+                    <span asp-validation-for="TeacherId" class="text-danger small"></span>
+                </div>
+            }
             <div class="mb-4 form-check">
                 <input asp-for="IsActive" class="form-check-input" />
                 <label asp-for="IsActive" class="form-check-label">Active</label>

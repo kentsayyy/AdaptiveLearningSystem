@@ -3,95 +3,84 @@
     ViewData["Title"] = "Progress Records";
 }
 
-<!-- Page Header -->
-<div class="page-header">
-    <h1 class="page-header-title">
-        <span class="title-icon" style="background:#e8f0fd;">
-            <i class="bi bi-bar-chart-fill text-blue"></i>
-        </span>
-        Student Progress Records
-    </h1>
-    <a asp-action="Create" class="btn btn-primary px-4">
-        <i class="bi bi-plus-lg me-1"></i>Record Progress
-    </a>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="fw-bold mb-0"><i class="bi bi-bar-chart-fill me-2 text-primary"></i>Student Progress Records</h4>
+    @* Only show the Record Progress button to Admins and Teachers. Students record progress from the module details. *@
+    @if (User.IsInRole("Admin") || User.IsInRole("Teacher"))
+    {
+        <a asp-action="Create" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg me-1"></i>Record Progress</a>
+    }
 </div>
 
-<!-- Filter Bar -->
-<div class="filter-bar mb-3">
-    <form method="get" class="d-flex flex-wrap gap-3 align-items-end">
-        <div>
-            <label class="form-label">Student Name</label>
-            <input name="studentName" class="form-control form-control-sm" value="@ViewBag.StudentName"
-                   placeholder="Search…" style="min-width:170px;" />
-        </div>
-        <div>
-            <label class="form-label">Status</label>
-            <select name="status" class="form-select form-select-sm" style="min-width:150px;">
-                <option value="">All Status</option>
-                <option value="In Progress" selected="@(ViewBag.Status == "In Progress" ? "selected" : null)">In Progress</option>
-                <option value="Completed"   selected="@(ViewBag.Status == "Completed"   ? "selected" : null)">Completed</option>
-            </select>
-        </div>
-        <div>
-            <label class="form-label">From Date</label>
-            <input type="date" name="fromDate" class="form-control form-control-sm" value="@ViewBag.FromDate" />
-        </div>
-        <div>
-            <label class="form-label">To Date</label>
-            <input type="date" name="toDate" class="form-control form-control-sm" value="@ViewBag.ToDate" />
-        </div>
-        <div class="d-flex gap-2">
-            <button class="btn btn-primary btn-sm px-4">Filter</button>
-            <a asp-action="Index" class="btn btn-outline-secondary btn-sm">Clear</a>
-        </div>
-    </form>
+<!-- Filter Form -->
+<div class="card mb-3">
+    <div class="card-body py-2">
+        <form method="get" class="d-flex flex-wrap gap-2 align-items-end">
+            <div>
+                <label class="form-label small mb-1">Student Name</label>
+                <input name="studentName" class="form-control form-control-sm" value="@ViewBag.StudentName" placeholder="Search..." style="min-width:160px;" />
+            </div>
+            <div>
+                <label class="form-label small mb-1">Status</label>
+                <select name="status" class="form-select form-select-sm" style="min-width:140px;">
+                    <option value="">All Status</option>
+                    <option value="In Progress" selected="@(ViewBag.Status == "In Progress" ? "selected" : null)">In Progress</option>
+                    <option value="Completed" selected="@(ViewBag.Status == "Completed" ? "selected" : null)">Completed</option>
+                </select>
+            </div>
+            <div>
+                <label class="form-label small mb-1">From Date</label>
+                <input type="date" name="fromDate" class="form-control form-control-sm" value="@ViewBag.FromDate" />
+            </div>
+            <div>
+                <label class="form-label small mb-1">To Date</label>
+                <input type="date" name="toDate" class="form-control form-control-sm" value="@ViewBag.ToDate" />
+            </div>
+            <div class="d-flex gap-2 align-self-end">
+                <button class="btn btn-primary btn-sm">Filter</button>
+                <a asp-action="Index" class="btn btn-outline-secondary btn-sm">Clear</a>
+            </div>
+        </form>
+    </div>
 </div>
 
-<!-- Table Card -->
 <div class="card">
     <div class="card-body p-0">
         @if (Model.Any())
         {
             <div class="table-responsive">
-                <table class="table mb-0">
-                    <thead>
+                <table class="table table-striped table-hover mb-0">
+                    <thead class="table-dark">
                         <tr>
-                            <th style="padding-left:1.5rem;">Student</th>
+                            <th>Student</th>
                             <th>Module</th>
                             <th>Quiz</th>
                             <th>Score</th>
                             <th>Status</th>
                             <th>Date</th>
-                            <th style="padding-right:1.5rem;">Recommendation</th>
+                            <th>Recommendation</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach (var p in Model)
                         {
                             <tr>
-                                <td style="padding-left:1.5rem;">
-                                    <div class="d-flex align-items-center gap-2">
-                                        <span style="width:32px;height:32px;border-radius:50%;background:#e8f0fd;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:.75rem;color:#0B4FD8;flex-shrink:0;">
-                                            @(p.User?.FullName?.Substring(0,1).ToUpper() ?? "?")
-                                        </span>
-                                        <span style="color:#1e293b;font-weight:500;">@p.User?.FullName</span>
-                                    </div>
-                                </td>
-                                <td class="text-truncate" style="max-width:130px;color:#475569;">@p.Module?.Title</td>
-                                <td class="text-truncate" style="max-width:120px;color:#475569;">@p.Quiz?.Title</td>
+                                <td>@p.User?.FullName</td>
+                                <td class="text-truncate" style="max-width:130px;">@p.Module?.Title</td>
+                                <td class="text-truncate" style="max-width:120px;">@p.Quiz?.Title</td>
                                 <td>
-                                    <span style="display:inline-block;padding:3px 10px;border-radius:20px;font-size:.78rem;font-weight:700;background:@(p.QuizScore >= 75 ? "#f0fdf4" : "#fff1f2");color:@(p.QuizScore >= 75 ? "#15803d" : "#be123c");">
+                                    <span class="badge @(p.QuizScore >= 75 ? "bg-success" : "bg-danger")">
                                         @p.QuizScore%
                                     </span>
                                 </td>
                                 <td>
-                                    <span class="badge rounded-pill" style="background:@(p.CompletionStatus == "Completed" ? "#f0fdf4" : "#fef3c7");color:@(p.CompletionStatus == "Completed" ? "#15803d" : "#92400e");">
+                                    <span class="badge @(p.CompletionStatus == "Completed" ? "bg-success" : "bg-warning text-dark")">
                                         @p.CompletionStatus
                                     </span>
                                 </td>
-                                <td style="color:#94a3b8;font-size:.82rem;">@p.DateCompleted.ToShortDateString()</td>
-                                <td style="padding-right:1.5rem;">
-                                    <span class="badge rounded-pill" style="background:@(p.QuizScore >= 75 ? "#f0fdf4" : "#fef3c7");color:@(p.QuizScore >= 75 ? "#15803d" : "#92400e");">
+                                <td class="small text-muted">@p.DateCompleted.ToShortDateString()</td>
+                                <td>
+                                    <span class="badge @(p.QuizScore >= 75 ? "bg-success" : "bg-warning text-dark") small">
                                         @p.Recommendation
                                     </span>
                                 </td>
@@ -103,12 +92,9 @@
         }
         else
         {
-            <div class="empty-state">
-                <div class="empty-state-icon" style="background:#e8f0fd;">
-                    <i class="bi bi-bar-chart" style="color:#0B4FD8;"></i>
-                </div>
-                <h6>No progress records found</h6>
-                <p>@(string.IsNullOrEmpty(ViewBag.StudentName?.ToString()) && string.IsNullOrEmpty(ViewBag.Status?.ToString()) ? "Start recording student quiz scores and completion data." : "Try adjusting your filters to find records.")</p>
+            <div class="text-center text-muted py-5">
+                <i class="bi bi-bar-chart fs-1"></i>
+                <p class="mt-2">No progress records found.</p>
             </div>
         }
     </div>

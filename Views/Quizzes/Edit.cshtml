@@ -29,6 +29,11 @@
                 <label asp-for="TotalItems" class="form-label fw-semibold">Total Items</label>
                 <input asp-for="TotalItems" class="form-control" type="number" min="1" max="100" />
             </div>
+            <div class="mb-3">
+                <label asp-for="Deadline" class="form-label fw-semibold">Deadline</label>
+                <input asp-for="Deadline" class="form-control" type="datetime-local" />
+                <span asp-validation-for="Deadline" class="text-danger small"></span>
+            </div>
             <div class="mb-4 form-check">
                 <input asp-for="IsActive" class="form-check-input" />
                 <label asp-for="IsActive" class="form-check-label">Active</label>

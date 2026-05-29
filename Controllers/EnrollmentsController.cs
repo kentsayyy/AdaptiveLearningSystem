@@ -24,10 +24,19 @@ namespace AdaptiveLearningSystem.Controllers
         [Authorize(Roles = "Admin,Teacher")]
         public async Task<IActionResult> Index()
         {
-            var enrollments = await _db.Enrollments
+            var query = _db.Enrollments
                 .Include(e => e.User)
                 .Include(e => e.Module)
-                .ToListAsync();
+                .AsQueryable();
+
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser != null && await _userManager.IsInRoleAsync(currentUser, "Teacher"))
+            {
+                // Teachers see only enrollments for modules they teach
+                query = query.Where(e => e.Module != null && e.Module.TeacherId == currentUser.Id);
+            }
+
+            var enrollments = await query.ToListAsync();
             return View(enrollments);
         }
 
@@ -35,12 +44,66 @@ namespace AdaptiveLearningSystem.Controllers
         [Authorize(Roles = "Student")]
         public async Task<IActionResult> MyModules()
         {
+            // MyModules dashboard removed — redirect students to main Dashboard which already
+            // displays their enrolled modules. Keep this route for backward compatibility.
+            return RedirectToAction("Index", "Dashboard");
+        }
+
+        // Allow students to enroll themselves in a module
+        [Authorize(Roles = "Student")]
+        public async Task<IActionResult> Enroll()
+        {
+            var modules = await _db.LearningModules.ToListAsync();
+            ViewBag.Modules = new SelectList(modules, "ModuleId", "Title");
+            return View();
+        }
+
+        [HttpPost, ValidateAntiForgeryToken]
+        [Authorize(Roles = "Student")]
+        public async Task<IActionResult> Enroll(int[] moduleIds)
+        {
             var user = await _userManager.GetUserAsync(User);
-            var enrollments = await _db.Enrollments
-                .Include(e => e.Module)
-                .Where(e => e.UserId == user!.Id)
+            if (user == null) return Challenge();
+
+            if (moduleIds == null || moduleIds.Length == 0)
+            {
+                TempData["Error"] = "Please select at least one module to enroll.";
+                return RedirectToAction(nameof(Enroll));
+            }
+
+            var modules = await _db.LearningModules
+                .Where(m => moduleIds.Contains(m.ModuleId))
                 .ToListAsync();
-            return View(enrollments);
+
+            var added = 0;
+            foreach (var module in modules.Distinct())
+            {
+                var exists = await _db.Enrollments
+                    .AnyAsync(e => e.UserId == user.Id && e.ModuleId == module.ModuleId);
+                if (exists) continue;
+
+                var enrollment = new Enrollment
+                {
+                    UserId = user.Id,
+                    ModuleId = module.ModuleId,
+                    EnrolledDate = DateTime.Now,
+                    Status = "Active"
+                };
+                _db.Enrollments.Add(enrollment);
+                added++;
+            }
+
+            if (added > 0)
+            {
+                await _db.SaveChangesAsync();
+                TempData["Success"] = added == 1 ? "Enrolled successfully." : $"Enrolled in {added} modules.";
+            }
+            else
+            {
+                TempData["Error"] = "No new enrollments were created (you may already be enrolled).";
+            }
+
+            return RedirectToAction("Index", "Dashboard");
         }
 
         [Authorize(Roles = "Admin,Teacher")]

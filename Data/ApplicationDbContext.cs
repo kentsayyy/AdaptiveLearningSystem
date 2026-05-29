@@ -48,6 +48,13 @@ namespace AdaptiveLearningSystem.Data
                 .WithMany(m => m.Enrollments)
                 .HasForeignKey(e => e.ModuleId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            // Module -> Teacher (ApplicationUser) relationship
+            modelBuilder.Entity<LearningModule>()
+                .HasOne(m => m.Teacher)
+                .WithMany(u => u.TeachingModules)
+                .HasForeignKey(m => m.TeacherId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

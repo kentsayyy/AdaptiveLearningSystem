@@ -11,5 +11,6 @@ namespace AdaptiveLearningSystem.Models
         // Navigation
         public ICollection<Enrollment>? Enrollments { get; set; }
         public ICollection<StudentProgress>? StudentProgresses { get; set; }
+        public ICollection<LearningModule>? TeachingModules { get; set; }
     }
 }

@@ -3,63 +3,58 @@
     ViewData["Title"] = "Learning Modules";
 }
 
-<!-- Page Header -->
-<div class="page-header">
-    <h1 class="page-header-title">
-        <span class="title-icon" style="background:#e6f7f1;">
-            <i class="bi bi-journal-bookmark-fill text-teal"></i>
-        </span>
-        Learning Modules
-    </h1>
-    <a asp-action="Create" class="btn btn-success px-4">
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="fw-bold mb-0"><i class="bi bi-journal-bookmark-fill me-2 text-success"></i>Learning Modules</h4>
+    <a asp-action="Create" class="btn btn-success btn-sm">
         <i class="bi bi-plus-lg me-1"></i>Add Module
     </a>
 </div>
 
-<!-- Filter Bar -->
-<div class="filter-bar mb-3">
-    <form method="get" class="d-flex flex-wrap gap-3 align-items-end">
-        <div>
-            <label class="form-label">Subject</label>
-            <select name="subject" class="form-select form-select-sm" style="min-width:160px;">
-                <option value="">All Subjects</option>
-                @foreach (var s in (ViewBag.Subjects as List<string> ?? new List<string>()))
-                {
-                    <option value="@s" selected="@(ViewBag.SelectedSubject == s ? "selected" : null)">@s</option>
-                }
-            </select>
-        </div>
-        <div>
-            <label class="form-label">Level</label>
-            <select name="level" class="form-select form-select-sm" style="min-width:140px;">
-                <option value="">All Levels</option>
-                <option value="Basic"    selected="@(ViewBag.SelectedLevel == "Basic"    ? "selected" : null)">Basic</option>
-                <option value="Advanced" selected="@(ViewBag.SelectedLevel == "Advanced" ? "selected" : null)">Advanced</option>
-            </select>
-        </div>
-        <div class="d-flex gap-2">
-            <button class="btn btn-primary btn-sm px-4">Filter</button>
-            <a asp-action="Index" class="btn btn-outline-secondary btn-sm">Clear</a>
-        </div>
-    </form>
+<!-- Filter Form -->
+<div class="card mb-3">
+    <div class="card-body py-2">
+        <form method="get" class="d-flex flex-wrap gap-2 align-items-end">
+            <div>
+                <label class="form-label small mb-1">Subject</label>
+                <select name="subject" class="form-select form-select-sm" style="min-width:150px;">
+                    <option value="">All Subjects</option>
+                    @foreach (var s in (ViewBag.Subjects as List<string> ?? new List<string>()))
+                    {
+                        <option value="@s" selected="@(ViewBag.SelectedSubject == s ? "selected" : null)">@s</option>
+                    }
+                </select>
+            </div>
+            <div>
+                <label class="form-label small mb-1">Level</label>
+                <select name="level" class="form-select form-select-sm" style="min-width:130px;">
+                    <option value="">All Levels</option>
+                    <option value="Basic" selected="@(ViewBag.SelectedLevel == "Basic" ? "selected" : null)">Basic</option>
+                    <option value="Advanced" selected="@(ViewBag.SelectedLevel == "Advanced" ? "selected" : null)">Advanced</option>
+                </select>
+            </div>
+            <div class="d-flex gap-2 align-self-end">
+                <button class="btn btn-primary btn-sm">Filter</button>
+                <a asp-action="Index" class="btn btn-outline-secondary btn-sm">Clear</a>
+            </div>
+        </form>
+    </div>
 </div>
 
-<!-- Table Card -->
 <div class="card">
     <div class="card-body p-0">
         @if (Model.Any())
         {
             <div class="table-responsive">
-                <table class="table mb-0">
-                    <thead>
+                <table class="table table-striped table-hover mb-0">
+                    <thead class="table-dark">
                         <tr>
-                            <th style="padding-left:1.5rem;width:48px;">#</th>
+                            <th>#</th>
                             <th>Title</th>
                             <th>Subject</th>
                             <th>Level</th>
                             <th>Status</th>
                             <th>Created</th>
-                            <th style="padding-right:1.5rem;">Actions</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -67,43 +62,25 @@
                         @foreach (var m in Model)
                         {
                             <tr>
-                                <td style="padding-left:1.5rem;color:#94a3b8;font-size:.82rem;">@i</td>
+                                <td class="text-muted small">@i</td>
+                                <td><strong>@m.Title</strong><br/><small class="text-muted">@m.Description.Substring(0, Math.Min(50, m.Description.Length))…</small></td>
+                                <td><span class="badge bg-info text-dark">@m.Subject</span></td>
                                 <td>
-                                    <strong style="color:#1e293b;">@m.Title</strong>
-                                    <div style="font-size:.78rem;color:#94a3b8;margin-top:1px;">
-                                        @m.Description.Substring(0, Math.Min(55, m.Description.Length))…
-                                    </div>
+                                    <span class="badge @(m.Level == "Advanced" ? "bg-danger" : "bg-secondary")">@m.Level</span>
                                 </td>
                                 <td>
-                                    <span class="badge rounded-pill" style="background:#e0f2fe;color:#0369a1;">@m.Subject</span>
-                                </td>
-                                <td>
-                                    <span class="badge rounded-pill @(m.Level == "Advanced" ? "" : "")"
-                                          style="background:@(m.Level == "Advanced" ? "#fff1f2" : "#f1f5f9");color:@(m.Level == "Advanced" ? "#be123c" : "#475569");">
-                                        @m.Level
+                                    <span class="badge @(m.IsActive ? "bg-success" : "bg-secondary")">
+                                        @(m.IsActive ? "Active" : "Inactive")
                                     </span>
                                 </td>
+                                <td class="small text-muted">@m.DateCreated.ToShortDateString()</td>
                                 <td>
-                                    <span class="badge rounded-pill" style="background:@(m.IsActive ? "#f0fdf4" : "#f8fafc");color:@(m.IsActive ? "#15803d" : "#64748b");">
-                                        <i class="bi bi-@(m.IsActive ? "check-circle" : "dash-circle") me-1"></i>@(m.IsActive ? "Active" : "Inactive")
-                                    </span>
-                                </td>
-                                <td style="color:#94a3b8;font-size:.82rem;">@m.DateCreated.ToShortDateString()</td>
-                                <td style="padding-right:1.5rem;">
-                                    <div class="d-flex gap-1">
-                                        <a asp-action="Details" asp-route-id="@m.ModuleId" class="btn btn-sm" style="background:#e8f0fd;color:#0B4FD8;border:none;" title="View">
-                                            <i class="bi bi-eye"></i>
-                                        </a>
-                                        <a asp-action="Edit" asp-route-id="@m.ModuleId" class="btn btn-sm" style="background:#fef3c7;color:#92400e;border:none;" title="Edit">
-                                            <i class="bi bi-pencil"></i>
-                                        </a>
-                                        <form asp-action="Delete" asp-route-id="@m.ModuleId" method="post" class="d-inline"
-                                              onsubmit="return confirm('Delete this module?')">
-                                            <button class="btn btn-sm" style="background:#fff1f2;color:#be123c;border:none;" title="Delete">
-                                                <i class="bi bi-trash"></i>
-                                            </button>
-                                        </form>
-                                    </div>
+                                    <a asp-action="Details" asp-route-id="@m.ModuleId" class="btn btn-sm btn-outline-info"><i class="bi bi-eye"></i></a>
+                                    <a asp-action="Edit" asp-route-id="@m.ModuleId" class="btn btn-sm btn-outline-warning"><i class="bi bi-pencil"></i></a>
+                                    <form asp-action="Delete" asp-route-id="@m.ModuleId" method="post" class="d-inline"
+                                          onsubmit="return confirm('Delete this module?')">
+                                        <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                                    </form>
                                 </td>
                             </tr>
                             i++;
@@ -114,12 +91,9 @@
         }
         else
         {
-            <div class="empty-state">
-                <div class="empty-state-icon" style="background:#e6f7f1;">
-                    <i class="bi bi-journal-bookmark" style="color:#0D9E6E;"></i>
-                </div>
-                <h6>No modules found</h6>
-                <p>Get started by <a asp-action="Create" style="color:#0D9E6E;font-weight:600;">creating your first module</a>.</p>
+            <div class="text-center text-muted py-5">
+                <i class="bi bi-journal-x fs-1"></i>
+                <p class="mt-2">No modules found. <a asp-action="Create">Create one?</a></p>
             </div>
         }
     </div>
