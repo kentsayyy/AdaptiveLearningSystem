@@ -1,0 +1,94 @@
+@model AdaptiveLearningSystem.Models.LearningModule
+@{
+    ViewData["Title"] = "Module Details";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="fw-bold mb-0"><i class="bi bi-journal-text me-2 text-info"></i>Module Details</h4>
+    @* Back button removed per UI requirement; navigation handled by sidebar and breadcrumbs *@
+</div>
+
+<div class="row g-4">
+    <div class="col-md-5">
+        <div class="card">
+            <div class="card-header bg-success text-white">@Model.Title</div>
+            <div class="card-body">
+                @if (User.IsInRole("Student"))
+                {
+                    <dl class="row mb-0">
+                        <dt class="col-sm-4">Subject</dt>
+                        <dd class="col-sm-8"><span class="badge bg-info text-dark">@Model.Subject</span></dd>
+                        <dt class="col-sm-4">Level</dt>
+                        <dd class="col-sm-8"><span class="badge @(Model.Level == "Advanced" ? "bg-danger" : "bg-secondary")">@Model.Level</span></dd>
+                        <dt class="col-sm-4">Teacher</dt>
+                        <dd class="col-sm-8">@Html.Raw(Model.Teacher?.FullName ?? "")</dd>
+                        <dt class="col-sm-4">Description</dt>
+                        <dd class="col-sm-8">@Model.Description</dd>
+                    </dl>
+                }
+                else
+                {
+                    <dl class="row mb-0">
+                        <dt class="col-sm-5">Subject</dt>
+                        <dd class="col-sm-7"><span class="badge bg-info text-dark">@Model.Subject</span></dd>
+                        <dt class="col-sm-5">Level</dt>
+                        <dd class="col-sm-7"><span class="badge @(Model.Level == "Advanced" ? "bg-danger" : "bg-secondary")">@Model.Level</span></dd>
+                        <dt class="col-sm-5">Status</dt>
+                        <dd class="col-sm-7"><span class="badge @(Model.IsActive ? "bg-success" : "bg-secondary")">@(Model.IsActive ? "Active" : "Inactive")</span></dd>
+                        <dt class="col-sm-5">Created</dt>
+                        <dd class="col-sm-7">@Model.DateCreated.ToShortDateString()</dd>
+                        <dt class="col-sm-5">Description</dt>
+                        <dd class="col-sm-7">@Model.Description</dd>
+                    </dl>
+                }
+            </div>
+            <div class="card-footer d-flex gap-2">
+                @if (User.IsInRole("Admin") || User.IsInRole("Teacher"))
+                {
+                    <a asp-action="Edit" asp-route-id="@Model.ModuleId" class="btn btn-warning btn-sm">
+                        <i class="bi bi-pencil me-1"></i>Edit
+                    </a>
+                }
+            </div>
+        </div>
+    </div>
+    <div class="col-md-7">
+        <div class="card">
+            <div class="card-header"><i class="bi bi-patch-question me-2"></i>Quizzes in this Module</div>
+            <div class="card-body p-0">
+                @if (Model.Quizzes != null && Model.Quizzes.Any())
+                {
+                    <table class="table mb-0">
+                        <thead class="table-light">
+                            <tr><th>Quiz Title</th><th>Items</th><th>Status</th><th></th></tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var q in Model.Quizzes)
+                            {
+                                <tr>
+                                    <td>@q.Title</td>
+                                    <td>@q.TotalItems</td>
+                                    <td><span class="badge @(q.IsActive ? "bg-success" : "bg-secondary")">@(q.IsActive ? "Active" : "Inactive")</span></td>
+                                    <td>
+                                        @if (User.IsInRole("Student"))
+                                        {
+                                            <a asp-controller="StudentProgress" asp-action="Create" asp-route-moduleId="@Model.ModuleId" asp-route-quizId="@q.QuizId" class="btn btn-sm btn-primary">Record Progress</a>
+                                        }
+                                        else if (User.IsInRole("Admin") || User.IsInRole("Teacher"))
+                                        {
+                                            <a asp-controller="StudentProgress" asp-action="Index" class="btn btn-sm btn-outline-secondary">View Progress</a>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <div class="text-center text-muted py-4">No quizzes yet.</div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
